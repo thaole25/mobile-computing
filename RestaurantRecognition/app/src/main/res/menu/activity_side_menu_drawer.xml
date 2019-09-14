@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_search"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="@string/menu_search" />
+        <item
+            android:id="@+id/nav_recent_matches"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="@string/menu_recent_matches" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="@string/menu_settings" />
+
+    </group>
+
+    <item android:title="Looking for Help?">
+        <menu>
+            <item
+                android:id="@+id/nav_help"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="@string/menu_help" />
+            <item
+                android:id="@+id/nav_exit"
+                android:icon="@drawable/ic_menu_share"
+                android:title="@string/menu_exit" />
+
+        </menu>
+    </item>
+
+</menu>
