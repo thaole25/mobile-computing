@@ -7,27 +7,32 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import com.example.restaurantrecognition.R;
 
 public class SearchFragment extends Fragment {
 
+    @BindView(R.id.btnSearchImage)
+    Button buttonSearchImage;
+
     private SearchViewModel searchViewModel;
-    public Button button;
 
     static final int REQUEST_IMAGE_CAPTURE = 0;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         searchViewModel =
                 ViewModelProviders.of(this).get(SearchViewModel.class);
-        View view = inflater.inflate(R.layout.fragment_search, container, false);
-        button = view.findViewById(R.id.btnSearchImage);
+        View searchView = inflater.inflate(R.layout.fragment_search, container, false);
+        ButterKnife.bind(this, searchView);
 
-        button.setOnClickListener(new View.OnClickListener(){
+        buttonSearchImage.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -37,7 +42,7 @@ public class SearchFragment extends Fragment {
             }
         });
 
-        return view;
+        return searchView;
     }
 
 }
