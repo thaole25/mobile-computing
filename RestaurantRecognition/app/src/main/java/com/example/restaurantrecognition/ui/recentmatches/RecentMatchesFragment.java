@@ -23,7 +23,7 @@ public class RecentMatchesFragment extends Fragment {
         recentMatchesViewModel =
                 ViewModelProviders.of(this).get(RecentMatchesViewModel.class);
         View root = inflater.inflate(R.layout.fragment_recent_matches, container, false);
-        final TextView textView = root.findViewById(R.id.text_gallery);
+        final TextView textView = root.findViewById(R.id.text_recent_matches);
         recentMatchesViewModel.getText().observe(this, new Observer<String>() {
             @Override
             public void onChanged(@Nullable String s) {

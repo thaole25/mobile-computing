@@ -10,7 +10,7 @@ public class RecentMatchesViewModel extends ViewModel {
 
     public RecentMatchesViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is gallery fragment");
+        mText.setValue("This is Recent Matches fragment");
     }
 
     public LiveData<String> getText() {

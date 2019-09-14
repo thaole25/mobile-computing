@@ -15,6 +15,7 @@
         android:id="@+id/nav_recent_matches"
         android:name="com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment"
         android:label="@string/menu_recent_matches"
+
         tools:layout="@layout/fragment_recent_matches" />
 
     <fragment
