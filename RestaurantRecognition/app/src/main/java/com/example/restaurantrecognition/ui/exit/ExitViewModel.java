@@ -10,7 +10,7 @@ public class ExitViewModel extends ViewModel {
 
     public ExitViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is share fragment");
+        mText.setValue("This is Exit fragment");
     }
 
     public LiveData<String> getText() {
