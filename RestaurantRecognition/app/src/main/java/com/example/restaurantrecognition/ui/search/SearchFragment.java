@@ -11,11 +11,14 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import androidx.lifecycle.ViewModelProviders;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.example.restaurantrecognition.R;
 
 public class SearchFragment extends Fragment {
 
-    //@BindView(R.id.btnSearchImage)
+    @BindView(R.id.btnSearchImage)
     Button buttonSearchImage;
 
     private SearchViewModel searchViewModel;
