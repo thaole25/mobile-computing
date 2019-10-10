@@ -1,3 +1,6 @@
+data/*
+AIModel/mykey
+
 # Built application files
 *.apk
 *.ap_
