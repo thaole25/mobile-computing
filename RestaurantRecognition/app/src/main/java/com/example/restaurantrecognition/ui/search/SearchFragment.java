@@ -3,29 +3,41 @@ package com.example.restaurantrecognition.ui.search;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Rational;
 import android.util.Size;
-import android.view.*;
+import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.TextureView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.example.restaurantrecognition.R;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.camera.core.*;
+import androidx.camera.core.CameraX;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureConfig;
+import androidx.camera.core.Preview;
+import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
+
+import com.example.restaurantrecognition.R;
+
+import java.io.File;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
 public class SearchFragment extends Fragment {
 
-    private final int REQUEST_CODE_PERMISSIONS = 10;
-    private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA"};
+    private final int REQUEST_CODE_PERMISSIONS = 101;
+    private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
 
 //    @BindView(R.id.btnSearchImage)
 //    Button buttonSearchImage;
@@ -78,20 +90,20 @@ public class SearchFragment extends Fragment {
         final ImageCapture imgCap = new ImageCapture(imageCaptureConfig);
 
        imgBtn.setOnClickListener(v -> {
-           imgCap.takePicture(new ImageCapture.OnImageCapturedListener() {
+           File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
+           imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
                @Override
-               public void onCaptureSuccess(ImageProxy image, int rotationDegrees) {
-                   String msg = "Camera pic taken!";
-                   Toast.makeText(getContext(), msg,Toast.LENGTH_LONG).show();
-                   super.onCaptureSuccess(image, rotationDegrees);
+               public void onImageSaved(@NonNull File file) {
+                   Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath() ,Toast.LENGTH_LONG).show();
                }
 
                @Override
                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                   super.onError(imageCaptureError, message, cause);
+                   Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_LONG).show();
                }
            });
        });
+
         //bind to lifecycle:
         CameraX.bindToLifecycle(this, preview, imgCap);
     }
