@@ -2,8 +2,10 @@ package com.example.restaurantrecognition.ui.search;
 
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -27,6 +29,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 
@@ -94,12 +100,25 @@ public class SearchFragment extends Fragment {
            imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
                @Override
                public void onImageSaved(@NonNull File file) {
-                   Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath() ,Toast.LENGTH_LONG).show();
+                   Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                   FirebaseStorage storage = FirebaseStorage.getInstance();
+                   StorageReference storageRef = storage.getReference();
+                   StorageMetadata metadata = new StorageMetadata.Builder()
+                           .setContentType("image/jpg")
+                           .build();
+                   Uri filePath = Uri.fromFile(file);
+                   StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
+                   UploadTask uploadTask = imageRef.putFile(filePath, metadata);
+                   uploadTask.addOnFailureListener(e -> {
+                       Toast.makeText(getContext(), "Failed to upload to cloud.", Toast.LENGTH_SHORT).show();
+                       Log.d(getTag(), e.toString());
+                   }).addOnSuccessListener(taskSnapshot -> {
+                       Toast.makeText(getContext(), "Photo uploaded to cloud!" ,Toast.LENGTH_SHORT).show();
+                   });
                }
-
                @Override
                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                   Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_LONG).show();
+                   Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_SHORT).show();
                }
            });
        });
