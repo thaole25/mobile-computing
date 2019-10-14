@@ -13,14 +13,14 @@ from keras.models import Model
 
 IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
-MODEL_VGG16 = "models/bottleneck_vgg16.h5"
-HISTORY_VGG16 = "models/bottleneck_vgg16_history"
+MODEL_VGG16 = "../data/training/bottleneck_vgg16.h5"
+HISTORY_VGG16 = "../data/training/bottleneck_vgg16_history"
 BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16.npy"
-MODEL_MOBILENET = "models/bottleneck_mobilenet.h5"
-HISTORY_MOBILENET = "models/bottleneck_mobilenet_history"
+MODEL_MOBILENET = "../data/training/bottleneck_mobilenet.h5"
+HISTORY_MOBILENET = "../data/training/bottleneck_mobilenet_history"
 BOTTLENECK_MOBILENET = "../data/training/bottleneck_mobilenet.npy"
-MODEL_SCRATCH = "models/bottleneck_mobilenet.h5"
-HISTORY_SCRATCH = "models/bottleneck_mobilenet_history"
+MODEL_SCRATCH = "../data/training/bottleneck_mobilenet.h5"
+HISTORY_SCRATCH = "../data/training/bottleneck_mobilenet_history"
 
 IMG_HEIGHT = 320 #640
 IMG_WIDTH = 160 #320
@@ -72,7 +72,7 @@ def train_vgg16(runBottleneck):
   if runBottleneck:
     generator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode=None)
     model = applications.VGG16(include_top=False,weights='imagenet')
-    bottleneck_features = model.predict(generator)
+    bottleneck_features = model.predict_generator(generator, steps=len(generator), verbose=2)
     np.save(BOTTLENECK_VGG16, bottleneck_features)
   else:
     bottleneck_features = np.load(BOTTLENECK_VGG16)
@@ -83,11 +83,11 @@ def train_vgg16(runBottleneck):
   model = Sequential()
   model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
   model.add(Dense(512, activation='relu'))
-  model.add(Dense(512, activation='relu')) 
-  model.add(Dropout(0.5))
+  # model.add(Dense(512, activation='relu')) 
+  # model.add(Dropout(0.5))
   model.add(Dense(NUM_CLASSES, activation='softmax'))
   model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-  hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.1, verbose=2)
+  hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, verbose=2)
   model.save(MODEL_VGG16) 
   historyFile = open(HISTORY_VGG16, 'wb')
   pickle.dump(hist.history, historyFile)
