@@ -3,6 +3,7 @@ import shutil
 import argparse
 import numpy as np 
 import pickle
+import pandas as pd 
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense
@@ -10,23 +11,23 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras import applications
 from keras.utils.np_utils import to_categorical
 from keras.models import Model
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
-MODEL_VGG16 = "../data/training/bottleneck_vgg16.h5"
-HISTORY_VGG16 = "../data/training/bottleneck_vgg16_history"
+MODEL_VGG16 = "../data/training/model_vgg16.h5"
+HISTORY_VGG16 = "../data/training/model_vgg16_history"
 BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16.npy"
-MODEL_MOBILENET = "../data/training/bottleneck_mobilenet.h5"
-HISTORY_MOBILENET = "../data/training/bottleneck_mobilenet_history"
-BOTTLENECK_MOBILENET = "../data/training/bottleneck_mobilenet.npy"
-MODEL_SCRATCH = "../data/training/bottleneck_mobilenet.h5"
-HISTORY_SCRATCH = "../data/training/bottleneck_mobilenet_history"
+CHECKPOINT_FILE = "../data/training/vgg16_checkpoint.h5"
+CSV_RESTAURANTS = "../data/training/restaurants.csv"
+X_TRAIN_FILE = "../data/training/x_train.npy"
+Y_TRAIN_FILE = "../data/training/y_train.npy"
 
-IMG_HEIGHT = 320 #640
-IMG_WIDTH = 160 #320
-MAX_IMAGES = 300
+IMG_HEIGHT = 224 #320 #640
+IMG_WIDTH = 224 #160 #320
+MAX_IMAGES = 160
 BATCH_SIZE = 16
-EPOCHS = 40
+EPOCHS = 20
 
 def preprocess_image(imagePath):
   image = load_img(imagePath, target_size=(IMG_HEIGHT, IMG_WIDTH))
@@ -40,7 +41,8 @@ def image_augmentation():
   """
   restaurantsIds = [folder[1] for folder in os.walk(IMAGES_PATH)]
   restaurantsIds = restaurantsIds[0]
-  imageGen = ImageDataGenerator(rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, zoom_range=0.2)
+  imageGen = ImageDataGenerator(rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, zoom_range=0.2, \
+                                shear_range=0.2, horizontal_flip=True)
   for restaurantsId in restaurantsIds:
     print (restaurantsId)
     restaurantPath = IMAGES_PATH + restaurantsId + '/'
@@ -82,9 +84,6 @@ def train_vgg16(runBottleneck):
   y_train = to_categorical(modelTop.classes, num_classes=NUM_CLASSES)
   model = Sequential()
   model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
-  model.add(Dense(512, activation='relu'))
-  # model.add(Dense(512, activation='relu')) 
-  # model.add(Dropout(0.5))
   model.add(Dense(NUM_CLASSES, activation='softmax'))
   model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
   hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, verbose=2)
@@ -93,81 +92,144 @@ def train_vgg16(runBottleneck):
   pickle.dump(hist.history, historyFile)
   historyFile.close()
 
-def train_vgg16_new():
-  datagen = ImageDataGenerator(validation_split=0.2)
-  trainGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='training')
-  validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-  TRAIN_LEN = len(trainGenerator)
-  VALIDATION_LEN = len(validationGenerator)
-  NUM_CLASSES = len(trainGenerator.class_indices)
-  model = Sequential()
-  model.add(applications.VGG16(include_top=False,weights='imagenet', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)))
-  model.add(Flatten())
-  model.add(Dense(NUM_CLASSES, activation='softmax')) 
-  model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
-  hist = model.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, \
-                            steps_per_epoch=TRAIN_LEN // BATCH_SIZE, validation_steps=VALIDATION_LEN // BATCH_SIZE,verbose=2)
-  model.save(MODEL_VGG16) 
-  historyFile = open(HISTORY_VGG16, 'wb')
-  pickle.dump(hist.history, historyFile)
-  historyFile.close()
+def getTotalNumberofImages():
+  total = 0
+  restaurantsIds = [folder[1] for folder in os.walk(AUGMENTATION_PATH)]
+  restaurantsIds = restaurantsIds[0]
+  for restaurantsId in restaurantsIds:
+    restaurantPath = AUGMENTATION_PATH + restaurantsId + '/'
+    for res in os.walk(restaurantPath):
+      imageFiles = res[2]
+      total += len(imageFiles)
+  return total
 
-def train_mobilenet():
-  datagen = ImageDataGenerator(validation_split=0.1)
-  trainGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='training')
-  validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-  NUM_CLASSES = len(trainGenerator.class_indices)
-  model = Sequential()
-  model.add(applications.MobileNet(include_top=False,weights='imagenet', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)))
-  model.add(Flatten())
-  model.add(Dense(NUM_CLASSES, activation='softmax')) 
-  model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-  hist = model.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, steps_per_epoch=len(trainGenerator) // BATCH_SIZE, verbose=2)
-  model.save(MODEL_MOBILENET) 
-  historyFile = open(HISTORY_MOBILENET, 'wb')
-  pickle.dump(hist.history, historyFile)
-  historyFile.close()
+def getNumberOfRestaurants():
+  restaurantsIds = [folder[1] for folder in os.walk(AUGMENTATION_PATH)]
+  restaurantsIds = restaurantsIds[0]
+  return len(restaurantsIds)
 
-def train_from_scratch():
-  datagen = ImageDataGenerator(validation_split=0.2)
-  trainGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='training')
-  validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-  NUM_CLASSES = len(trainGenerator.class_indices)
-  TRAIN_LEN = len(trainGenerator)
-  VALIDATION_LEN = len(validationGenerator)
+def create_training_data():
+  # restaurantspd = pd.read_csv(CSV_RESTAURANTS)
+  # restaurantspd = restaurantspd.reset_index()
+  # restaurantspd['Id'] = pd.to_numeric(restaurantspd['Id'], downcast='integer')
+  # restaurantspd['Label'] = restaurantspd['Id'].astype('category')
+  # restaurantspd = restaurantspd.set_index('Id')
+  # restaurantsDict = restaurantspd.to_dict()
+  # restaurantsLabels = restaurantsDict['Label']
+  TOTAL_IMAGES = getTotalNumberofImages()
+  restaurantsIds = [folder[1] for folder in os.walk(AUGMENTATION_PATH)]
+  restaurantsIds = restaurantsIds[0]
+  labelDict = {}
+  print (TOTAL_IMAGES)
+  # totalInstances = len(restaurantsIds) * MAX_IMAGES
+  x_train = np.ndarray((TOTAL_IMAGES, IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.float32)
+  y_train = np.ndarray((TOTAL_IMAGES, ), dtype=np.uint8)
+  i = 0
+  count = 0
+  for restaurantsId in restaurantsIds:
+    print (restaurantsId)
+    labelDict[restaurantsId] = count
+    restaurantPath = AUGMENTATION_PATH + restaurantsId + '/'
+    for res in os.walk(restaurantPath):
+      imageFiles = res[2]
+      for imageFile in imageFiles:
+        image = load_img(restaurantPath + imageFile, target_size=(IMG_HEIGHT, IMG_WIDTH))
+        image = img_to_array(image) / 255
+        x_train[i] = image
+        y_train[i] = count
+        i += 1
+    count += 1
+  labelspd = pd.DataFrame(list(labelDict.items()), columns=['Id', 'Label'])
+  labelspd.to_csv("../data/training/labelspd.csv")
+  np.save(X_TRAIN_FILE, x_train)
+  np.save(Y_TRAIN_FILE, y_train)
 
-  model = Sequential()
-  model.add(Conv2D(32, (3, 3), input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), activation='relu'))
-  model.add(Conv2D(32, (3, 3), activation = 'relu'))
-  model.add(MaxPooling2D(pool_size=(2, 2)))
-  model.add(Conv2D(128, (3, 3), activation = 'relu'))
-  model.add(Conv2D(128, (3, 3), activation = 'relu'))
-  model.add(MaxPooling2D(pool_size=(2, 2)))
-  model.add(Conv2D(256, (3, 3), activation = 'relu'))
-  model.add(Conv2D(256, (3, 3), activation = 'relu'))
-  model.add(MaxPooling2D(pool_size=(2, 2)))
-  model.add(Flatten())
-  model.add(Dense(512, activation = 'relu'))
-  model.add(Dropout(0.5))
-  model.add(Dense(NUM_CLASSES, activation = 'softmax'))
-  model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-  hist = model.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, \
-                            steps_per_epoch=TRAIN_LEN // BATCH_SIZE, validation_steps=VALIDATION_LEN // BATCH_SIZE,verbose=2)
-  model.save(MODEL_SCRATCH) 
-  historyFile = open(HISTORY_SCRATCH, 'wb')
-  pickle.dump(hist.history, historyFile)
-  historyFile.close()
+def train_vgg16_new(runBottleneck, runFC, runFinalModel):
+  """
+  Avoid random weights initialisation
+  """
+  # Get the data
+  print ("Get the data---------------------------")
+  # datagen = ImageDataGenerator()
+  # generator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=TOTAL_IMAGES, class_mode='categorical', subset='training')
+  # validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
+  # NUM_CLASSES = len(generator.class_indices)
+  # y_train = to_categorical(trainGenerator.classes, num_classes=NUM_CLASSES)
+  # TRAIN_LEN = len(trainGenerator)
+  # VALIDATION_LEN = len(validationGenerator)
+  NUM_CLASSES = getNumberOfRestaurants()
+  x_train = np.load(X_TRAIN_FILE)
+  y_train = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
+  print (x_train.shape)
+  print (y_train.shape)
+  # Get the output of VGG16 model
+  print ("Get bottleneck output-----------------------------")
+  if runBottleneck:
+    vgg16Model = applications.VGG16(include_top=False,weights='imagenet')
+    # bottleneck_features = vgg16Model.predict_generator(trainGenerator, steps=TRAIN_LEN // BATCH_SIZE, verbose=2)
+    bottleneck_features = vgg16Model.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
+    np.save(BOTTLENECK_VGG16, bottleneck_features)
+  else:
+    bottleneck_features = np.load(BOTTLENECK_VGG16)
+
+  # Train the FC layers to get the best weights (CHECKPOINT FILE)
+  if runFC:
+    print ("Train FC layers----------------------------")
+    model = Sequential()
+    model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
+    model.add(Dense(512, activation = 'relu'))
+    # model.add(Dense(512, activation = 'relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(NUM_CLASSES, activation = 'softmax'))
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    checkpoint = ModelCheckpoint(CHECKPOINT_FILE, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    # early_stopping = EarlyStopping(monitor='val_acc', patience=6)
+    hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, validation_split=0.1, \
+              batch_size=BATCH_SIZE, callbacks=[checkpoint], verbose=2)
+    historyFile = open("../data/training/fc_hist", 'wb')
+    pickle.dump(hist.history, historyFile)
+    historyFile.close()
+
+  if runFinalModel:
+    print ("Train Final Model-----------------------------------")
+    base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT,IMG_WIDTH,3))
+    top_model = Sequential()
+    top_model.add(Flatten(input_shape=base_model.output_shape[1:]))
+    top_model.add(Dense(512, activation = 'relu'))
+    # top_model.add(Dense(512, activation = 'relu'))
+    top_model.add(Dropout(0.5))
+    top_model.add(Dense(NUM_CLASSES, activation='softmax'))
+    top_model.load_weights(CHECKPOINT_FILE)
+    finalModel = Model(inputs=base_model.input, outputs=top_model(base_model.output))
+    for layer in finalModel.layers[:15]:
+      layer.trainable = False
+    # early_stopping = EarlyStopping(monitor='val_acc', patience=4)
+    finalModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
+    # hist = finalModel.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, callbacks=[early_stopping], \
+                                # steps_per_epoch=TRAIN_LEN // BATCH_SIZE, validation_steps=VALIDATION_LEN // BATCH_SIZE, verbose=2)
+    hist = finalModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.2, \
+              batch_size=BATCH_SIZE, verbose=2)
+    historyFile = open(HISTORY_VGG16, 'wb')
+    pickle.dump(hist.history, historyFile)
+    historyFile.close()
+
+def test():
+  x_train = np.load(X_TRAIN_FILE)
+  print (x_train[0])
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("-a", "--augmentation", help="", action="store_true")
   parser.add_argument("-t", "--training", help="", action="store_true")
+  parser.add_argument("-c", "--createtraining", help="", action="store_true")
+  parser.add_argument("-d", "--debug", help="", action="store_true")
   
   args = parser.parse_args()
   if args.augmentation:
     image_augmentation()
+  if args.createtraining:
+    create_training_data()
   if args.training:
-    train_vgg16(False)
-    # train_vgg16_new()
-    # train_mobilenet()
-    # train_from_scratch()
+    train_vgg16_new(False, False, True)
+  if args.debug:
+    test()
