@@ -15,17 +15,18 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
-MODEL_VGG16 = "../data/training/model_vgg16.h5"
-HISTORY_VGG16 = "../data/training/model_vgg16_history"
-BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16.npy"
-CHECKPOINT_FILE = "../data/training/vgg16_checkpoint.h5"
+MODEL_VGG16 = "../data/training/model_vgg16_1.h5"
+HISTORY_VGG16 = "../data/training/model_vgg16_history_1"
+FC_HISTORY = "../data/training/fc_hist"
+BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16_1.npy"
+CHECKPOINT_FILE = "../data/training/vgg16_checkpoint_1.h5"
 CSV_RESTAURANTS = "../data/training/restaurants.csv"
-X_TRAIN_FILE = "../data/training/x_train.npy"
-Y_TRAIN_FILE = "../data/training/y_train.npy"
+X_TRAIN_FILE = "../data/training/x_train_1.npy"
+Y_TRAIN_FILE = "../data/training/y_train_1.npy"
 
-IMG_HEIGHT = 224 #320 #640
-IMG_WIDTH = 224 #160 #320
-MAX_IMAGES = 160
+IMG_HEIGHT = 112 #224 #320 #640
+IMG_WIDTH = 112 #224 #160 #320
+MAX_IMAGES = 800
 BATCH_SIZE = 16
 EPOCHS = 20
 
@@ -109,19 +110,11 @@ def getNumberOfRestaurants():
   return len(restaurantsIds)
 
 def create_training_data():
-  # restaurantspd = pd.read_csv(CSV_RESTAURANTS)
-  # restaurantspd = restaurantspd.reset_index()
-  # restaurantspd['Id'] = pd.to_numeric(restaurantspd['Id'], downcast='integer')
-  # restaurantspd['Label'] = restaurantspd['Id'].astype('category')
-  # restaurantspd = restaurantspd.set_index('Id')
-  # restaurantsDict = restaurantspd.to_dict()
-  # restaurantsLabels = restaurantsDict['Label']
   TOTAL_IMAGES = getTotalNumberofImages()
   restaurantsIds = [folder[1] for folder in os.walk(AUGMENTATION_PATH)]
   restaurantsIds = restaurantsIds[0]
   labelDict = {}
   print (TOTAL_IMAGES)
-  # totalInstances = len(restaurantsIds) * MAX_IMAGES
   x_train = np.ndarray((TOTAL_IMAGES, IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.float32)
   y_train = np.ndarray((TOTAL_IMAGES, ), dtype=np.uint8)
   i = 0
@@ -144,21 +137,22 @@ def create_training_data():
   np.save(X_TRAIN_FILE, x_train)
   np.save(Y_TRAIN_FILE, y_train)
 
+def preprocess_numpy_images(x_train):
+  mean = np.mean(x_train, axis=0)
+  std = np.std(x_train, axis=0)
+  x_train -= mean
+  x_train /= std
+  return x_train
+
 def train_vgg16_new(runBottleneck, runFC, runFinalModel):
   """
   Avoid random weights initialisation
   """
   # Get the data
   print ("Get the data---------------------------")
-  # datagen = ImageDataGenerator()
-  # generator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=TOTAL_IMAGES, class_mode='categorical', subset='training')
-  # validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-  # NUM_CLASSES = len(generator.class_indices)
-  # y_train = to_categorical(trainGenerator.classes, num_classes=NUM_CLASSES)
-  # TRAIN_LEN = len(trainGenerator)
-  # VALIDATION_LEN = len(validationGenerator)
   NUM_CLASSES = getNumberOfRestaurants()
   x_train = np.load(X_TRAIN_FILE)
+  x_train = preprocess_numpy_images(x_train)
   y_train = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
   print (x_train.shape)
   print (y_train.shape)
@@ -166,7 +160,6 @@ def train_vgg16_new(runBottleneck, runFC, runFinalModel):
   print ("Get bottleneck output-----------------------------")
   if runBottleneck:
     vgg16Model = applications.VGG16(include_top=False,weights='imagenet')
-    # bottleneck_features = vgg16Model.predict_generator(trainGenerator, steps=TRAIN_LEN // BATCH_SIZE, verbose=2)
     bottleneck_features = vgg16Model.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
     np.save(BOTTLENECK_VGG16, bottleneck_features)
   else:
@@ -183,10 +176,10 @@ def train_vgg16_new(runBottleneck, runFC, runFinalModel):
     model.add(Dense(NUM_CLASSES, activation = 'softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     checkpoint = ModelCheckpoint(CHECKPOINT_FILE, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-    # early_stopping = EarlyStopping(monitor='val_acc', patience=6)
+    early_stopping = EarlyStopping(monitor='val_acc', patience=5)
     hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, callbacks=[checkpoint], verbose=2)
-    historyFile = open("../data/training/fc_hist", 'wb')
+              batch_size=BATCH_SIZE, callbacks=[checkpoint, early_stopping], verbose=2)
+    historyFile = open(FC_HISTORY, 'wb')
     pickle.dump(hist.history, historyFile)
     historyFile.close()
 
@@ -205,10 +198,9 @@ def train_vgg16_new(runBottleneck, runFC, runFinalModel):
       layer.trainable = False
     # early_stopping = EarlyStopping(monitor='val_acc', patience=4)
     finalModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
-    # hist = finalModel.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, callbacks=[early_stopping], \
-                                # steps_per_epoch=TRAIN_LEN // BATCH_SIZE, validation_steps=VALIDATION_LEN // BATCH_SIZE, verbose=2)
-    hist = finalModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.2, \
-              batch_size=BATCH_SIZE, verbose=2)
+    early_stopping = EarlyStopping(monitor='val_acc', patience=5)    
+    hist = finalModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.1, \
+              batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping])
     historyFile = open(HISTORY_VGG16, 'wb')
     pickle.dump(hist.history, historyFile)
     historyFile.close()
