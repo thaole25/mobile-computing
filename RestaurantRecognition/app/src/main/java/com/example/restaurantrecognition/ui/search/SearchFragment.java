@@ -36,7 +36,7 @@ public class SearchFragment extends Fragment {
         buttonSearchImage.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-               /* try {
+                try {
                     Fragment fragment = (Fragment) (SearchResultFragment.class).newInstance();
 
                     FragmentTransaction fragmentTransaction = getActivity()
@@ -47,13 +47,14 @@ public class SearchFragment extends Fragment {
 
                 } catch (java.lang.InstantiationException e) {
                     e.printStackTrace();
-                }*/
+                }
 
 
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                /*Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null) {
                     startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
                 }
+                 */
             }
         });
 
