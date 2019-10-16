@@ -11,10 +11,13 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 
 public class SearchFragment extends Fragment {
 
@@ -33,8 +36,22 @@ public class SearchFragment extends Fragment {
         buttonSearchImage.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
+               /* try {
+                    Fragment fragment = (Fragment) (SearchResultFragment.class).newInstance();
+
+                    FragmentTransaction fragmentTransaction = getActivity()
+                            .getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                    fragmentTransaction.commit();
+                } catch (IllegalAccessException e) {
+
+                } catch (java.lang.InstantiationException e) {
+                    e.printStackTrace();
+                }*/
+
+
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null){
+                if (cameraIntent.resolveActivity(getActivity().getPackageManager()) != null) {
                     startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
                 }
             }
