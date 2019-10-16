@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 HISTORY_FILE = "../data/training/fc_hist"
+# HISTORY_FILE = "../data/training/model_vgg16_history_1"
+
 EVALUATION_FOLDER = "evaluation/"
 
 def read_history():

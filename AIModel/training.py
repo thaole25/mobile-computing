@@ -4,29 +4,35 @@ import argparse
 import numpy as np 
 import pickle
 import pandas as pd 
-from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
+from keras.preprocessing.image import load_img, img_to_array, ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense
-from keras.layers import Conv2D, MaxPooling2D
 from keras import applications
 from keras.utils.np_utils import to_categorical
 from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+from contextlib import redirect_stdout
 
 IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
-MODEL_VGG16 = "../data/training/model_vgg16_1.h5"
-HISTORY_VGG16 = "../data/training/model_vgg16_history_1"
-FC_HISTORY = "../data/training/fc_hist"
+
 BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16_1.npy"
+
 CHECKPOINT_FILE = "../data/training/vgg16_checkpoint_1.h5"
+FC_HISTORY = "../data/training/fc_hist"
+MODEL_FC = "../data/training/model_fc_1.h5"
+MODEL_SUMMARY = "../data/training/fc_summary_1"
+
+MODEL_VGG16 = "../data/training/model_vgg16_2.h5"
+HISTORY_VGG16 = "../data/training/model_vgg16_history_2"
+
 CSV_RESTAURANTS = "../data/training/restaurants.csv"
 X_TRAIN_FILE = "../data/training/x_train_1.npy"
 Y_TRAIN_FILE = "../data/training/y_train_1.npy"
 
-IMG_HEIGHT = 112 #224 #320 #640
-IMG_WIDTH = 112 #224 #160 #320
-MAX_IMAGES = 800
+IMG_HEIGHT = 224
+IMG_WIDTH = 224
+MAX_IMAGES = 500
 BATCH_SIZE = 16
 EPOCHS = 20
 
@@ -58,7 +64,9 @@ def image_augmentation():
         shutil.rmtree(saveDir)
       os.mkdir(saveDir)
       for imageFile in imageFiles:
-        image = preprocess_image(restaurantPath + imageFile)
+        sourceFile = restaurantPath + imageFile
+        shutil.copyfile(sourceFile, saveDir + '/' + imageFile)
+        image = preprocess_image(sourceFile)
         i = 1
         for _ in imageGen.flow(image, batch_size=1, save_to_dir=saveDir, save_prefix='new'):
           i += 1
@@ -69,29 +77,6 @@ def image_augmentation():
         for _ in imageGen.flow(image, batch_size=1, save_to_dir=saveDir, save_prefix='new'):
           i += 1
           if i > remainderSize: break 
-
-def train_vgg16(runBottleneck):
-  datagen = ImageDataGenerator()
-  if runBottleneck:
-    generator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode=None)
-    model = applications.VGG16(include_top=False,weights='imagenet')
-    bottleneck_features = model.predict_generator(generator, steps=len(generator), verbose=2)
-    np.save(BOTTLENECK_VGG16, bottleneck_features)
-  else:
-    bottleneck_features = np.load(BOTTLENECK_VGG16)
-
-  modelTop = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, class_mode='categorical')
-  NUM_CLASSES = len(modelTop.class_indices)
-  y_train = to_categorical(modelTop.classes, num_classes=NUM_CLASSES)
-  model = Sequential()
-  model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
-  model.add(Dense(NUM_CLASSES, activation='softmax'))
-  model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-  hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_split=0.2, verbose=2)
-  model.save(MODEL_VGG16) 
-  historyFile = open(HISTORY_VGG16, 'wb')
-  pickle.dump(hist.history, historyFile)
-  historyFile.close()
 
 def getTotalNumberofImages():
   total = 0
@@ -157,28 +142,32 @@ def train_vgg16_new(runBottleneck, runFC, runFinalModel):
   print (x_train.shape)
   print (y_train.shape)
   # Get the output of VGG16 model
-  print ("Get bottleneck output-----------------------------")
-  if runBottleneck:
-    vgg16Model = applications.VGG16(include_top=False,weights='imagenet')
-    bottleneck_features = vgg16Model.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
-    np.save(BOTTLENECK_VGG16, bottleneck_features)
-  else:
-    bottleneck_features = np.load(BOTTLENECK_VGG16)
-
-  # Train the FC layers to get the best weights (CHECKPOINT FILE)
   if runFC:
+    print ("Get bottleneck output-----------------------------")
+    if runBottleneck:
+      vgg16Model = applications.VGG16(include_top=False,weights='imagenet')
+      bottleneck_features = vgg16Model.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
+      np.save(BOTTLENECK_VGG16, bottleneck_features)
+    else:
+      bottleneck_features = np.load(BOTTLENECK_VGG16)
+    # Train the FC layers to get the best weights (CHECKPOINT FILE)
     print ("Train FC layers----------------------------")
     model = Sequential()
     model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
-    model.add(Dense(512, activation = 'relu'))
-    # model.add(Dense(512, activation = 'relu'))
+    model.add(Dense(1024, activation = 'relu'))
+    # model.add(Dense(256, activation = 'relu'))
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation = 'softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    with open(MODEL_SUMMARY, 'w') as f:
+      with redirect_stdout(f):
+        model.summary()
+
     checkpoint = ModelCheckpoint(CHECKPOINT_FILE, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     early_stopping = EarlyStopping(monitor='val_acc', patience=5)
     hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, validation_split=0.1, \
               batch_size=BATCH_SIZE, callbacks=[checkpoint, early_stopping], verbose=2)
+    model.save(MODEL_FC)
     historyFile = open(FC_HISTORY, 'wb')
     pickle.dump(hist.history, historyFile)
     historyFile.close()
@@ -188,19 +177,20 @@ def train_vgg16_new(runBottleneck, runFC, runFinalModel):
     base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT,IMG_WIDTH,3))
     top_model = Sequential()
     top_model.add(Flatten(input_shape=base_model.output_shape[1:]))
-    top_model.add(Dense(512, activation = 'relu'))
+    top_model.add(Dense(1024, activation = 'relu'))
+    # top_model.add(Dense(512, activation = 'relu'))
     # top_model.add(Dense(512, activation = 'relu'))
     top_model.add(Dropout(0.5))
     top_model.add(Dense(NUM_CLASSES, activation='softmax'))
-    top_model.load_weights(CHECKPOINT_FILE)
+    # top_model.load_weights(CHECKPOINT_FILE)
     finalModel = Model(inputs=base_model.input, outputs=top_model(base_model.output))
     for layer in finalModel.layers[:15]:
       layer.trainable = False
-    # early_stopping = EarlyStopping(monitor='val_acc', patience=4)
     finalModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
     early_stopping = EarlyStopping(monitor='val_acc', patience=5)    
     hist = finalModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.1, \
               batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping])
+    finalModel.save(MODEL_VGG16)
     historyFile = open(HISTORY_VGG16, 'wb')
     pickle.dump(hist.history, historyFile)
     historyFile.close()
