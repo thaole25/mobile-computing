@@ -1,3 +1,7 @@
+data/*
+AIModel/api_key/*
+.vscode/*
+
 # Built application files
 *.apk
 *.ap_
