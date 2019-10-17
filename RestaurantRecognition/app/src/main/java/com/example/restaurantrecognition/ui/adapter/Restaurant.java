@@ -1,6 +1,8 @@
 package com.example.restaurantrecognition.ui.adapter;
 
-public class Restaurant {
+import java.io.Serializable;
+
+public class Restaurant implements Serializable {
     int image;
     String name,address;
     String rating;

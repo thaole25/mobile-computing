@@ -1,78 +1,132 @@
 package com.example.restaurantrecognition.ui.searchresult;
 
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
 import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
-import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 public class SearchResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
+    double lat = -37.7;
+    double lon = 144.9;
+    String resName = "Pronto Pizza";
+    String resAddress = "Parkville, University of Melbourne, Grattan Street";
+
+    ListView listView;
+    RestaurantListAdapter listViewAdapter;
+    List<Restaurant> restaurantList;
+
+    ProgressDialog progressDialog;
+
+    private FragmentInteractionListener mListener;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        /* To-DO
-        *  1. Fetch array of results from the Zomato API
-        *       Requires : ZomatoAccess
-        *  2. Fetch information from each element in the array, including :
-        *       - Name
-        *       - Rating
-        *       - Image
-        *       - Descriptions?
-        *  3. Create a ListViewAdapter to adapt with the information above
-        *  4. View the Information on the ListView UI
-        *  */
-
-
-        /* DUMMY ARRAY */
-        String[] menuItems = {"KFC", "Pronto Pizza", "Egg Sake"};
-        List<Restaurant> restaurantList = new ArrayList<>();
-        restaurantList.add(new Restaurant(1,"KFC", "142 Grattan St", "5"));
-        restaurantList.add(new Restaurant(2, "Pronto Pizza", "Parkville, University of Melbourne", "3.5"));
-        restaurantList.add(new Restaurant(3, "Egg Sake", "Parkville, Basement of \nUnion House UoM", "4.5"));
 
         searchResultViewModel =
                 ViewModelProviders.of(this).get(SearchResultViewModel.class);
         View root = inflater.inflate(R.layout.fragment_search_result, container, false);
 
+        restaurantList = new ArrayList<>();
+        listView = root.findViewById(R.id.simpleListView);
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Loading Restaurant Data...");
+        progressDialog.setMessage("Please Wait...");
+        progressDialog.show();
 
-        ListView listView = root.findViewById(R.id.simpleListView);
-        RestaurantListAdapter listViewAdapter = new RestaurantListAdapter(
-               getActivity(),R.layout.items_layout,restaurantList
-        );
+        getRestaurantList();
 
-        //ArrayAdapter<String> listViewAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1,menuItems);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
 
-        listView.setAdapter(listViewAdapter);
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                Bundle bundle = new Bundle();
+
+                Restaurant restaurantObject = restaurantList.get(position);
+                bundle.putSerializable("your_obj", restaurantObject);
+
+                RecentMatchesFragment fragment = new RecentMatchesFragment();
+
+                fragment.setArguments(bundle);
+                fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+
+            }
+        });
+
 
         return root;
+    }
+
+    private void getRestaurantList() {
+
+        ArrayList<Restaurant> restaurantList = new ArrayList<>();
+        ZomatoAsync zomatoAsync = new ZomatoAsync();
+        this.restaurantList = zomatoAsync.doInBackground();
+        zomatoAsync.execute();
+
+        return;
+
+    }
+
+    private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>>{
+
+        @Override
+        protected List<Restaurant> doInBackground(Void... voids) {
+
+            List<Restaurant> restaurantList = new ArrayList<>();
+
+            ZomatoAccess zomatoAccess = new ZomatoAccess();
+            JSONAdapter jsonAdapter = new JSONAdapter();
+            //GET LOCATION
+            String res = zomatoAccess.findNearbyLocation(lat,lon,resAddress);
+            int city_id = jsonAdapter.getLocationId(res);
+            //GET RESTAURANT LIST
+            String resList = zomatoAccess.findMatchingRestaurants(resName,city_id,lat,lon);
+            restaurantList = jsonAdapter.getRestaurantList(resList);
+
+            listViewAdapter = new RestaurantListAdapter(
+                    getActivity(),R.layout.items_layout,restaurantList
+            );
+
+            return restaurantList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Restaurant> restaurants) {
+            progressDialog.dismiss();
+            listView.setAdapter(listViewAdapter);
+        }
+
     }
 
 }
