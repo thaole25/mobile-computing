@@ -9,43 +9,29 @@ from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense, GlobalAveragePooling2D
 from keras import applications
 from keras.utils.np_utils import to_categorical
-from keras.models import Model
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from contextlib import redirect_stdout
-from keras.applications.mobilenetv2 import preprocess_input
+from sklearn.model_selection import train_test_split
 
 import tensorflow as  tf 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
+tf.Session(config=config)
 
 IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
 
-BOTTLENECK_VGG16 = "../data/training/bottleneck_vgg16_1.npy"
-BOTTLENECK_MOBILE = "../data/training/bottleneck_mobile.npy"
-
-CHECKPOINT_FILE = "../data/training/vgg16_checkpoint_1.h5"
-FC_HISTORY = "../data/training/fc_hist"
-MODEL_FC = "../data/training/model_fc_1.h5"
-MODEL_SUMMARY = "../data/training/fc_summary_1"
-
-MODEL_VGG16 = "../data/training/model_vgg16_2.h5"
-HISTORY_VGG16 = "../data/training/model_vgg16_history_2"
-
-CSV_RESTAURANTS = "../data/training/restaurants.csv"
-
 ####################### mobile net 
-MODEL_MOBILENET = "../data/training/model_mobile.h5"
 HISTORY_MOBILENET = "../data/training/model_mobile_history"
 CHECKPOINT_MOBILE = "../data/training/mobile_checkpoint.h5"
+BEST_MODEL_MOBILENET = "../data/training/best_model_mobile.h5"
 
 X_TRAIN_FILE = "../data/training/x_train_small.npy" #"../data/training/x_train_2.npy"
 Y_TRAIN_FILE = "../data/training/y_train_small.npy" #"../data/training/y_train_2.npy"
 
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-MAX_IMAGES = 600
+MAX_IMAGES = 400
 BATCH_SIZE = 16
 EPOCHS = 20
 
@@ -107,6 +93,8 @@ def getNumberOfRestaurants():
   restaurantsIds = restaurantsIds[0]
   return len(restaurantsIds)
 
+NUM_CLASSES = getNumberOfRestaurants()
+
 def create_training_data():
   TOTAL_IMAGES = getTotalNumberofImages()
   restaurantsIds = [folder[1] for folder in os.walk(AUGMENTATION_PATH)]
@@ -126,7 +114,6 @@ def create_training_data():
       for imageFile in imageFiles:
         image = load_img(restaurantPath + imageFile, target_size=(IMG_HEIGHT, IMG_WIDTH))
         image = img_to_array(image) / 255
-        # image = np.expand_dims(image, axis=0)
         x_train[i] = image
         y_train[i] = count
         i += 1
@@ -136,192 +123,41 @@ def create_training_data():
   np.save(X_TRAIN_FILE, x_train)
   np.save(Y_TRAIN_FILE, y_train)
 
-def preprocess_numpy_images(x_train):
-  mean = np.mean(x_train, axis=0)
-  std = np.std(x_train, axis=0)
-  x_train -= mean
-  x_train /= std
-  return x_train
-
-def train_vgg16_new(runBottleneck, runFC, runFinalModel):
-  """
-  Avoid random weights initialisation
-  """
-  # Get the data
-  print ("Get the data---------------------------")
-  NUM_CLASSES = getNumberOfRestaurants()
-  x_train = np.load(X_TRAIN_FILE)
-  x_train = preprocess_numpy_images(x_train)
-  y_train = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
-  print (x_train.shape)
-  print (y_train.shape)
-  # Get the output of VGG16 model
-  if runFC:
-    print ("Get bottleneck output-----------------------------")
-    if runBottleneck:
-      vgg16Model = applications.VGG16(include_top=False,weights='imagenet')
-      bottleneck_features = vgg16Model.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
-      np.save(BOTTLENECK_VGG16, bottleneck_features)
-    else:
-      bottleneck_features = np.load(BOTTLENECK_VGG16)
-    # Train the FC layers to get the best weights (CHECKPOINT FILE)
-    print ("Train FC layers----------------------------")
-    model = Sequential()
-    model.add(Flatten(input_shape=bottleneck_features.shape[1:]))
-    model.add(Dense(1024, activation = 'relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(NUM_CLASSES, activation = 'softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    with open(MODEL_SUMMARY, 'w') as f:
-      with redirect_stdout(f):
-        model.summary()
-
-    checkpoint = ModelCheckpoint(CHECKPOINT_FILE, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-    early_stopping = EarlyStopping(monitor='val_acc', patience=5)
-    hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, callbacks=[checkpoint, early_stopping], verbose=2)
-    model.save(MODEL_FC)
-    historyFile = open(FC_HISTORY, 'wb')
-    pickle.dump(hist.history, historyFile)
-    historyFile.close()
-
-  if runFinalModel:
-    print ("Train Final Model-----------------------------------")
-    base_model = applications.VGG16(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT,IMG_WIDTH,3))
-    top_model = Sequential()
-    top_model.add(Flatten(input_shape=base_model.output_shape[1:]))
-    top_model.add(Dense(1024, activation = 'relu'))
-    top_model.add(Dropout(0.5))
-    top_model.add(Dense(NUM_CLASSES, activation='softmax'))
-    # top_model.load_weights(CHECKPOINT_FILE)
-    finalModel = Model(inputs=base_model.input, outputs=top_model(base_model.output))
-    for layer in finalModel.layers[:15]:
-      layer.trainable = False
-    finalModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
-    early_stopping = EarlyStopping(monitor='val_acc', patience=5)    
-    hist = finalModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping])
-    finalModel.save(MODEL_VGG16)
-    historyFile = open(HISTORY_VGG16, 'wb')
-    pickle.dump(hist.history, historyFile)
-    historyFile.close()
-
-def test():
-  x_train = np.load(X_TRAIN_FILE)
-  print (x_train[0])
-
-def train_mobilenet_new(runBottleneck, runFC, runFinalModel):
-  # Get the data
-  print ("Get the data---------------------------")
-  NUM_CLASSES = getNumberOfRestaurants()
-  x_train = np.load(X_TRAIN_FILE)
-  # x_train = preprocess_numpy_images(x_train)
-  y_train = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
-  print (x_train.shape)
-  print (y_train.shape)
-  # Get the output of VGG16 model
-  if runFC:
-    print ("Get bottleneck output-----------------------------")
-    if runBottleneck:
-      mobileModel = applications.MobileNet(include_top=False,weights='imagenet')
-      bottleneck_features = mobileModel.predict(x_train, batch_size=BATCH_SIZE, verbose=2)
-      np.save(BOTTLENECK_MOBILE, bottleneck_features)
-    else:
-      bottleneck_features = np.load(BOTTLENECK_MOBILE)
-      print (bottleneck_features.shape)
-    # Train the FC layers to get the best weights (CHECKPOINT FILE)
-    print ("Train FC layers----------------------------")
-    model = Sequential()
-    model.add(GlobalAveragePooling2D())
-    model.add(Dense(1024, activation = 'relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(NUM_CLASSES, activation = 'softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    # with open(MODEL_SUMMARY, 'w') as f:
-      # with redirect_stdout(f):
-        # model.summary()
-    checkpoint = ModelCheckpoint(CHECKPOINT_MOBILE, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-    early_stopping = EarlyStopping(monitor='val_acc', patience=5)
-    hist = model.fit(bottleneck_features, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, callbacks=[checkpoint, early_stopping], verbose=2)
-    model.save(MODEL_MOBILENET)
-    historyFile = open(HISTORY_MOBILENET, 'wb')
-    pickle.dump(hist.history, historyFile)
-    historyFile.close()
-
-  if runFinalModel:
-    print ("Train Final Model-----------------------------------")
-    baseModel = applications.MobileNet(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT,IMG_WIDTH,3))
-    mobileModel = Sequential()
-    mobileModel.add(baseModel)
-    mobileModel.add(GlobalAveragePooling2D())
-    mobileModel.add(Dense(512, activation = 'relu'))
-    mobileModel.add(Dense(512, activation = 'relu'))    
-    mobileModel.add(Dropout(0.5))
-    mobileModel.add(Dense(NUM_CLASSES, activation='softmax'))
-    # mobileModel.load_weights(CHECKPOINT_MOBILE)
-    # finalModel = Model(inputs=baseModel.input, outputs=mobileModel(baseModel.output))
-    mobileModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
-    checkpoint = ModelCheckpoint(CHECKPOINT_MOBILE, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-    early_stopping = EarlyStopping(monitor='val_loss', patience=8)    
-    hist = mobileModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping, checkpoint])
-    mobileModel.save(MODEL_MOBILENET)
-    historyFile = open(HISTORY_MOBILENET, 'wb')
-    pickle.dump(hist.history, historyFile)
-    historyFile.close()
-
-def train_mobilenet():
-  # Get the data
-  # print ("Get the data---------------------------")
-  NUM_CLASSES = getNumberOfRestaurants()
-  x_train = np.load(X_TRAIN_FILE)
-  x_train = preprocess_numpy_images(x_train)
-  y_train = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
-  print (x_train.shape)
-  print (y_train.shape)
-  # Run model
-  mobileModel = applications.MobileNetV2(weights='imagenet', include_top=False, \
-                input_shape=(IMG_HEIGHT,IMG_WIDTH,3), classes=NUM_CLASSES)
+def get_mobilenet():
+  baseModel = applications.MobileNet(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT,IMG_WIDTH,3))
+  mobileModel = Sequential()
+  mobileModel.add(baseModel)
+  mobileModel.add(GlobalAveragePooling2D())
+  mobileModel.add(Dense(512, activation = 'relu'))
+  mobileModel.add(Dense(512, activation = 'relu'))    
+  mobileModel.add(Dropout(0.5))
+  mobileModel.add(Dense(NUM_CLASSES, activation='softmax'))
   mobileModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
-  early_stopping = EarlyStopping(monitor='val_acc', patience=5)    
-  hist = mobileModel.fit(x_train, y_train, epochs=EPOCHS, validation_split=0.1, \
-              batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping])
-  mobileModel.save(MODEL_MOBILENET)
+
+  return mobileModel
+
+def train_mobilenet_new():
+  print ("Get the data---------------------------")
+  x = np.load(X_TRAIN_FILE)
+  y = to_categorical(np.load(Y_TRAIN_FILE), num_classes=NUM_CLASSES)
+  x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2)
+  print ("Train Final Model-----------------------------------")
+  mobileModel = get_mobilenet()
+  checkpoint = ModelCheckpoint(CHECKPOINT_MOBILE, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+  early_stopping = EarlyStopping(monitor='val_loss', patience=8)    
+  hist = mobileModel.fit(x_train, y_train, epochs=EPOCHS, validation_data=(x_val, y_val), \
+              batch_size=BATCH_SIZE, verbose=2, callbacks=[early_stopping, checkpoint])
+  mobileModel.load_weights(CHECKPOINT_MOBILE)
+  mobileModel.save(BEST_MODEL_MOBILENET)
   historyFile = open(HISTORY_MOBILENET, 'wb')
   pickle.dump(hist.history, historyFile)
   historyFile.close()
 
-  # datagen = ImageDataGenerator(preprocessing_function=preprocess_input, validation_split=0.1)
-  # trainGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), \
-  #                                         batch_size=BATCH_SIZE, class_mode='categorical', subset='training')
-  # validationGenerator = datagen.flow_from_directory(AUGMENTATION_PATH, target_size=(IMG_HEIGHT, IMG_WIDTH), \
-  #                                         batch_size=BATCH_SIZE, class_mode='categorical', subset='validation')
-  # TRAIN_LEN = len(trainGenerator)
-  # VALIDATION_LEN = len(validationGenerator)
-  # NUM_CLASSES = len(trainGenerator.class_indices)
-  # base_model = applications.MobileNetV2(include_top=False, weights='imagenet', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))
-  # # top_model = Sequential()
-  # # top_model.add(Flatten(input_shape=base_model.output_shape))
-  # # top_model.add(Dense(1024, activation = 'relu'))
-  # # top_model.add(Dense(NUM_CLASSES, activation='softmax'))
-  # # mobileModel = Model(inputs=base_model.input, outputs=top_model(base_model.output))
-  # nextLayer = base_model.output
-  # nextLayer = Dense(256, activation='relu')(nextLayer)
-  # lastLayer = Dense(NUM_CLASSES, activation='softmax')(nextLayer)
-  # mobileModel = Model(inputs=base_model.input, outputs=lastLayer)
-  # for layer in mobileModel.layers[:15]:
-  #     layer.trainable = False
-  # hist = mobileModel.fit_generator(trainGenerator, epochs=EPOCHS, validation_data=validationGenerator, \
-  #                           steps_per_epoch=TRAIN_LEN // BATCH_SIZE, validation_steps=VALIDATION_LEN // BATCH_SIZE, \
-  #                           callbacks=[early_stopping], verbose=2)
-  
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("-a", "--augmentation", help="", action="store_true")
   parser.add_argument("-t", "--training", help="", action="store_true")
   parser.add_argument("-c", "--createtraining", help="", action="store_true")
-  parser.add_argument("-d", "--debug", help="", action="store_true")
   
   args = parser.parse_args()
   if args.augmentation:
@@ -329,7 +165,4 @@ if __name__ == "__main__":
   if args.createtraining:
     create_training_data()
   if args.training:
-    # train_vgg16_new(False, False, True)
-    train_mobilenet_new(False, False, True)
-  if args.debug:
-    test()
+    train_mobilenet_new()
