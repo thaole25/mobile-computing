@@ -102,7 +102,7 @@ public class SearchFragment extends Fragment {
                public void onImageSaved(@NonNull File file) {
                    Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                    FirebaseStorage storage = FirebaseStorage.getInstance();
-                   StorageReference storageRef = storage.getReference();
+                   StorageReference storageRef = storage.getReference().child("uploads");
                    StorageMetadata metadata = new StorageMetadata.Builder()
                            .setContentType("image/jpg")
                            .build();
