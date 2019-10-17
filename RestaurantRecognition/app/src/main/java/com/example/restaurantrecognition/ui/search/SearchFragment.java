@@ -35,9 +35,11 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import id.zelory.compressor.Compressor;
 
 
 public class SearchFragment extends Fragment {
@@ -106,7 +108,17 @@ public class SearchFragment extends Fragment {
                    StorageMetadata metadata = new StorageMetadata.Builder()
                            .setContentType("image/jpg")
                            .build();
-                   Uri filePath = Uri.fromFile(file);
+                   File compressedFile = null;
+                   try {
+                       compressedFile = new Compressor(getContext()).compressToFile(file);
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                   }
+                   Uri filePath = null;
+                   if (compressedFile == null)
+                       filePath = Uri.fromFile(file);
+                   else
+                       filePath = Uri.fromFile(compressedFile);
                    StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
                    UploadTask uploadTask = imageRef.putFile(filePath, metadata);
                    uploadTask.addOnFailureListener(e -> {
