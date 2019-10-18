@@ -1,7 +1,13 @@
 package com.example.restaurantrecognition;
 
-import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
+import android.util.Log;
 
+import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
+import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
+import com.google.gson.JsonObject;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -16,6 +22,7 @@ public class ZomatoAccessTest {
         String address = "Parkville";
 
         System.out.println(zomatoAccess.findNearbyLocation(lat,lon,address));
+
     }
 
     @Test

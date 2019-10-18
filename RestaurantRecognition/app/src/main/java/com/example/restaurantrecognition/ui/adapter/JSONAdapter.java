@@ -1,5 +1,6 @@
 package com.example.restaurantrecognition.ui.adapter;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.JsonObject;
@@ -45,7 +46,7 @@ public class JSONAdapter {
                 JSONObject restaurantObjectVal = restaurantObject.getJSONObject("restaurant");
                 JSONObject locationObject = restaurantObjectVal.getJSONObject("location");
                 JSONObject ratingObject = restaurantObjectVal.getJSONObject("user_rating");
-                restaurantList.add(new Restaurant(1,restaurantObjectVal.getString("name"),locationObject.getString("address"),ratingObject.getString("aggregate_rating")));
+                restaurantList.add(new Restaurant(restaurantObjectVal.getInt("id"),restaurantObjectVal.getString("thumb"),restaurantObjectVal.getString("name"),locationObject.getString("address"),ratingObject.getString("aggregate_rating")));
             }
 
         } catch (JSONException e) {

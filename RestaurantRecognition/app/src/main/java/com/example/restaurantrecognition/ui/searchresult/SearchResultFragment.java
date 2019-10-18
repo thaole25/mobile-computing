@@ -17,6 +17,7 @@ import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
 import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
 import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
 
 import java.util.ArrayList;
@@ -39,7 +40,6 @@ public class SearchResultFragment extends Fragment {
 
     ListView listView;
     RestaurantListAdapter listViewAdapter;
-    List<Restaurant> restaurantList;
 
     ProgressDialog progressDialog;
 
@@ -48,12 +48,10 @@ public class SearchResultFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-
         searchResultViewModel =
                 ViewModelProviders.of(this).get(SearchResultViewModel.class);
         View root = inflater.inflate(R.layout.fragment_search_result, container, false);
 
-        restaurantList = new ArrayList<>();
         listView = root.findViewById(R.id.simpleListView);
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Loading Restaurant Data...");
@@ -62,36 +60,12 @@ public class SearchResultFragment extends Fragment {
 
         getRestaurantList();
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fm.beginTransaction();
-                Bundle bundle = new Bundle();
-
-                Restaurant restaurantObject = restaurantList.get(position);
-                bundle.putSerializable("your_obj", restaurantObject);
-
-                RecentMatchesFragment fragment = new RecentMatchesFragment();
-
-                fragment.setArguments(bundle);
-                fragmentTransaction.replace(R.id.fragmentContent, fragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
-
-            }
-        });
-
-
         return root;
     }
 
     private void getRestaurantList() {
 
-        ArrayList<Restaurant> restaurantList = new ArrayList<>();
         ZomatoAsync zomatoAsync = new ZomatoAsync();
-        this.restaurantList = zomatoAsync.doInBackground();
         zomatoAsync.execute();
 
         return;
@@ -103,7 +77,7 @@ public class SearchResultFragment extends Fragment {
         @Override
         protected List<Restaurant> doInBackground(Void... voids) {
 
-            List<Restaurant> restaurantList = new ArrayList<>();
+            List<Restaurant> restaurantList;
 
             ZomatoAccess zomatoAccess = new ZomatoAccess();
             JSONAdapter jsonAdapter = new JSONAdapter();
@@ -125,6 +99,26 @@ public class SearchResultFragment extends Fragment {
         protected void onPostExecute(List<Restaurant> restaurants) {
             progressDialog.dismiss();
             listView.setAdapter(listViewAdapter);
+
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+
+                    FragmentManager fm = getActivity().getSupportFragmentManager();
+                    FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                    Bundle bundle = new Bundle();
+
+                    Restaurant restaurantObject = restaurants.get(position);
+                    bundle.putSerializable("Restaurant", restaurantObject);
+
+
+                    RestaurantResultFragment fragment = new RestaurantResultFragment();
+
+                    fragment.setArguments(bundle);
+                    fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+                }});
         }
 
     }

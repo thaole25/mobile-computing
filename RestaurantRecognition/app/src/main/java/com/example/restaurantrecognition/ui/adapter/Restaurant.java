@@ -3,18 +3,23 @@ package com.example.restaurantrecognition.ui.adapter;
 import java.io.Serializable;
 
 public class Restaurant implements Serializable {
-    int image;
+    int id;
+    String image;
     String name,address;
     String rating;
+    
 
-    public Restaurant(int image, String name, String address, String rating) {
+    public Restaurant(int id, String image, String name, String address, String rating) {
+        this.id = id;
         this.image = image;
         this.name = name;
         this.address = address;
         this.rating = rating;
     }
 
-    public int getImage() {
+    public int getId() { return id;}
+
+    public String getImage() {
         return image;
     }
 
