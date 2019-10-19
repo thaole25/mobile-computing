@@ -14,6 +14,7 @@
         android:layout_marginLeft="28dp"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="37dp"
+        android:adjustViewBounds="true"
         app:srcCompat="@mipmap/ic_launcher" />
 
     <TextView
@@ -47,10 +48,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/textViewAddress"
-        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="37dp"
-        android:layout_toEndOf="@+id/imageView"
+        android:layout_toRightOf="@+id/imageView"
         android:text="My Rating :" />
 
     <TextView

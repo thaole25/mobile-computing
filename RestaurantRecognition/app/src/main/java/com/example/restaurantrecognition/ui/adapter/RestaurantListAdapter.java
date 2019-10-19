@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.restaurantrecognition.R;
-
-import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -64,6 +60,7 @@ public class RestaurantListAdapter extends ArrayAdapter<Restaurant> {
         textViewAddress.setText(restaurant.getAddress());
         textViewRating.setText(restaurant.getRating());
         starIcon.setImageResource(R.drawable.staricon);
+
         URL url = null;
         try {
             url = new URL(restaurant.getImage());

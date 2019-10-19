@@ -37,7 +37,7 @@ public class ZomatoAccessTest {
 
     @Test
     public void getReviewTest() {
-        int res_id = 16578116;
+        String res_id = "16578116";
         int offset = 0;
 
         System.out.println(zomatoAccess.getReview(res_id,offset));
@@ -45,7 +45,7 @@ public class ZomatoAccessTest {
 
     @Test
     public void GetRestaurantDetailsTest() {
-        int res_id = 16578116;
+        String res_id = "16578116";
 
         System.out.println(zomatoAccess.getRestaurantDetails(res_id));
     }

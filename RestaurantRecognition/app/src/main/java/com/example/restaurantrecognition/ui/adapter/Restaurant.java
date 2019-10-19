@@ -3,21 +3,25 @@ package com.example.restaurantrecognition.ui.adapter;
 import java.io.Serializable;
 
 public class Restaurant implements Serializable {
-    int id;
+    String id;
     String image;
     String name,address;
     String rating;
+    double lat;
+    double lon;
     
 
-    public Restaurant(int id, String image, String name, String address, String rating) {
+    public Restaurant(String id, String image, String name, String address, String rating, double lat, double lon) {
         this.id = id;
         this.image = image;
         this.name = name;
         this.address = address;
         this.rating = rating;
+        this.lat = lat;
+        this.lon = lon;
     }
 
-    public int getId() { return id;}
+    public String getId() { return id;}
 
     public String getImage() {
         return image;
@@ -34,5 +38,9 @@ public class Restaurant implements Serializable {
     public String getRating() {
         return rating;
     }
+
+    public double getLat() { return lat; }
+
+    public double getLon() { return lon; }
 
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/reviewerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="25dp"
+        android:text="Reviewer Name"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/reviewerRating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/reviewerName"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="12dp"
+        android:text="Ratings" />
+
+    <ImageView
+        android:id="@+id/reviewStar"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_below="@+id/reviewerName"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="12dp"
+        android:layout_toEndOf="@+id/reviewerRating"
+        android:layout_toRightOf="@+id/reviewerRating" />
+
+    <TextView
+        android:id="@+id/reviewContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/reviewerRating"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="12dp"
+        android:text="Review Content" />
+
+    <TextView
+        android:id="@+id/reviewTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginRight="23dp"
+        android:text="Review Time" />
+
+
+</RelativeLayout>

@@ -133,7 +133,7 @@ public class ZomatoAccess {
     }
 
     // Getting a list of restaurant reviews
-    public String getReview(int res_id, int offset) {
+    public String getReview(String res_id, int offset) {
         final String method_path = "reviews?";
 
         URL url = null;
@@ -189,7 +189,7 @@ public class ZomatoAccess {
     }
 
     // We might not need this as getRestaurant already include the restaurant details
-    public String getRestaurantDetails(int res_id) {
+    public String getRestaurantDetails(String res_id) {
         final String method_path = "restaurant?";
 
         URL url = null;

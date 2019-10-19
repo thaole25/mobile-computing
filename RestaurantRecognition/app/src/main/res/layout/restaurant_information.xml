@@ -1,183 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/reviews"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyText"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="18dp"
-        android:layout_marginLeft="17dp"
-        android:layout_marginTop="20dp"
-        android:text="Reviews"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textSize="22dp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/addressContent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/addressText"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="37dp"
-        android:layout_marginLeft="37dp"
-        android:layout_marginTop="24dp"
-        android:text="Address Contents"
-        android:textSize="16dp"
-        android:maxWidth="300dp"
-        android:textStyle="bold" />
-
-    <ImageView
-        android:id="@+id/imageView2"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="143dp"
-        android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/restaurantName"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView2"
-        android:layout_marginTop="14dp"
-        android:layout_marginEnd="56dp"
-        android:layout_marginRight="56dp"
-        android:layout_toLeftOf="@+id/ratingNumber"
-        android:paddingLeft="14dp"
-        android:text="Restaurant Name"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textSize="30dp"
-        android:textStyle="bold" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/ratingNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView2"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginRight="20dp"
-        android:text="3.7"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textSize="25dp"
-        android:textStyle="bold" />
+            <TextView
+                android:id="@+id/reviews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/dailyText"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="17dp"
+                android:layout_marginTop="25dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Reviews"
+                android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                android:textSize="22dp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/ratingText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ratingNumber"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginRight="14dp"
-        android:text="Ratings" />
+            <TextView
+                android:id="@+id/allreviews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/dailyText"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="27dp"
+                android:text="See all reviews >>" />
 
-    <TextView
-        android:id="@+id/addressText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/restaurantName"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="17dp"
-        android:layout_marginLeft="17dp"
-        android:layout_marginTop="32dp"
-        android:text="Address"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textSize="22dp"
-        android:textStyle="bold" />
+            <TextView
+                android:id="@+id/addressContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/addressText"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginStart="37dp"
+                android:layout_marginLeft="37dp"
+                android:layout_marginTop="20dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:maxWidth="300dp"
+                android:text="Address Contents"
+                android:textSize="16dp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/menuText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/addressContent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="17dp"
-        android:layout_marginLeft="17dp"
-        android:layout_marginTop="25dp"
-        android:text="Menu"
-        android:textColor="@color/common_google_signin_btn_text_dark_focused"
-        android:textSize="22dp"
-        android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="match_parent"
+                android:layout_height="143dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
-    <ListView
-        android:layout_width="357dp"
-        android:layout_height="232dp"
-        android:id="@+id/reviewslistView"
-        android:layout_below="@+id/reviews"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="23dp"
-        android:layout_marginLeft="23dp"
-        android:layout_marginTop="15dp" />
+            <!--View
+                android:id="@+id/straightLine"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#F2F6F9"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/ratingText" /-->
 
+            <TextView
+                android:id="@+id/restaurantName"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/imageView2"
+                android:layout_alignParentLeft="true"
+                android:layout_marginTop="14dp"
+                android:layout_marginEnd="56dp"
+                android:layout_marginRight="56dp"
+                android:fontFamily="sans-serif-condensed-medium"
+                android:paddingLeft="14dp"
+                android:text="Restaurant Name"
+                android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                android:textSize="30dp"
+                android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_width="101dp"
-        android:layout_height="94dp"
-        android:layout_below="@+id/menuText"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginStart="71dp"
-        android:layout_marginLeft="71dp"
-        android:layout_marginTop="20dp"
-        android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@drawable/dailymenu" />
+            <TextView
+                android:id="@+id/ratingNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/imageView2"
+                android:layout_marginTop="12dp"
+                android:layout_marginRight="1dp"
+                android:layout_toLeftOf="@id/ratingStar"
+                android:fontFamily="sans-serif-condensed-medium"
+                android:text="3.7"
+                android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                android:textSize="25dp"
+                android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="101dp"
-        android:layout_height="94dp"
-        android:layout_below="@+id/menuText"
-        android:layout_marginStart="53dp"
-        android:layout_marginLeft="53dp"
-        android:layout_marginTop="20dp"
-        android:layout_toRightOf="@+id/imageView3"
-        android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@drawable/normalmenu" />
+            <TextView
+                android:id="@+id/ratingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/ratingNumber"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                android:text="Rating" />
 
-    <TextView
-        android:id="@+id/dailyText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/imageView3"
-        android:layout_alignStart="@+id/imageView3"
-        android:layout_alignLeft="@+id/imageView3"
-        android:layout_marginStart="14dp"
-        android:layout_marginLeft="14dp"
-        android:layout_marginTop="7dp"
-        android:text="Daily Menu" />
+            <TextView
+                android:id="@+id/addressText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/restaurantName"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginStart="17dp"
+                android:layout_marginLeft="17dp"
+                android:layout_marginTop="32dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Address"
+                android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                android:textSize="22dp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/normalmenuText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/imageView4"
-        android:layout_alignStart="@+id/imageView4"
-        android:layout_alignLeft="@+id/imageView4"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="6dp"
-        android:text="Normal Menu" />
+            <TextView
+                android:id="@+id/googleMapText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/restaurantName"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="33dp"
+                android:layout_marginRight="10dp"
+                android:text="Open in GoogleMaps >>" />
 
+            <TextView
+                android:id="@+id/menuText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/addressContent"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginStart="17dp"
+                android:layout_marginLeft="17dp"
+                android:layout_marginTop="25dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Menus"
+                android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                android:textSize="22dp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/reviewlistView"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/reviews"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="17dp"
+                android:layout_marginBottom="20dp"
+                android:orientation="vertical" />
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="101dp"
+                android:layout_height="94dp"
+                android:layout_below="@+id/menuText"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="17dp"
+                android:layout_marginTop="20dp"
+                android:adjustViewBounds="true"
+                tools:srcCompat="@drawable/dailyicon" />
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="101dp"
+                android:layout_height="94dp"
+                android:layout_below="@+id/menuText"
+                android:layout_marginLeft="30dp"
+                android:layout_marginTop="20dp"
+                android:layout_toRightOf="@+id/imageView3"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                tools:srcCompat="@drawable/normalmenu" />
+
+            <ImageView
+                android:id="@+id/ratingStar"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_below="@id/imageView2"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="18dp"
+                android:layout_marginRight="1dp"
+                tools:srcCompat="@drawable/staricon" />
+
+            <TextView
+                android:id="@+id/dailyText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView3"
+                android:layout_alignStart="@+id/imageView3"
+                android:layout_alignLeft="@+id/imageView3"
+                android:layout_marginLeft="0dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Daily Menu" />
+
+            <TextView
+                android:id="@+id/normalmenuText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView4"
+                android:layout_alignStart="@+id/imageView4"
+                android:layout_alignLeft="@+id/imageView4"
+                android:layout_marginLeft="0dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Normal Menu" />
+
+        </RelativeLayout>
+    </ScrollView>
 
 </RelativeLayout>
