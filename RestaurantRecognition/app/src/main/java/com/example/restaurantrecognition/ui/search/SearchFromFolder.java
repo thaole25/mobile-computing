@@ -13,9 +13,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
+import com.example.restaurantrecognition.ui.help.HelpViewModel;
 
 import java.io.IOException;
 
@@ -28,17 +31,18 @@ public class SearchFromFolder extends Fragment {
 //    @BindView(R.id.imageContainer)
 //    ImageView imageContainer;
 //    @BindView(R.id.txtResult)
-    TextView txtResult;
+//    TextView txtResult;
 
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
     private final int REQUEST_CODE_GET_IMAGE = 25;
-
+    private SearchFromFolderModel searchFromFolderModel;
+    private TextView txt_prediction;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        LayoutInflater lf = getActivity().getLayoutInflater();
-        View view =  getActivity().getLayoutInflater().inflate(R.layout.fragment_search_from_folder, container, false);
-        txtResult = (TextView) view.findViewById(R.id.txtResult);
+        searchFromFolderModel = ViewModelProviders.of(this).get(SearchFromFolderModel.class);
+        View root = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
+        txt_prediction = root.findViewById(R.id.text_prediction);
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -61,6 +65,14 @@ public class SearchFromFolder extends Fragment {
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
                     CharSequence prediction = aiModel.sendImagetoFirebase(imageBitmap);
+                    searchFromFolderModel.getText().observe(this, new Observer<String>() {
+                        @Override
+                        public void onChanged(String s) {
+                            txt_prediction.setText(prediction);
+
+                        }
+                    });
+
 //                    txtResult.setText(prediction);
 //                    imageContainer.setImageBitmap(imageBitmap);
                 } catch (IOException e) {
