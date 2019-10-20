@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
@@ -36,19 +37,14 @@ public class SearchFromFolder extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        LayoutInflater lf = getActivity().getLayoutInflater();
-        View view =  getActivity().getLayoutInflater().inflate(R.layout.fragment_search_from_folder, container, false);
-        txtResult = (TextView) view.findViewById(R.id.txtResult);
-
+        View view = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
+        txtResult = view.findViewById(R.id.txtResult);
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/*");
         startActivityForResult(intent, REQUEST_CODE_GET_IMAGE);
 
-//        View root = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
-//        final TextView textView = root.findViewById(R.id.text_recent_matches);
-
-        return super.onCreateView(inflater, container, savedInstanceState);
+        return view;
     }
 
     @Override
@@ -61,8 +57,7 @@ public class SearchFromFolder extends Fragment {
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
                     CharSequence prediction = aiModel.sendImagetoFirebase(imageBitmap);
-//                    txtResult.setText(prediction);
-//                    imageContainer.setImageBitmap(imageBitmap);
+                    txtResult.setText(prediction);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
