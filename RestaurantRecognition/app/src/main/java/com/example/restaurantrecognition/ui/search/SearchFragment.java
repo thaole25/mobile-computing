@@ -1,5 +1,7 @@
 package com.example.restaurantrecognition.ui.search;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.net.Uri;
@@ -40,6 +42,8 @@ import java.io.IOException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import id.zelory.compressor.Compressor;
+
+import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 
 
 public class SearchFragment extends Fragment {
