@@ -6,8 +6,12 @@
 
     <TextView
         android:id="@+id/txtResult"
-        android:layout_width="match_parent"
-        android:layout_height="51dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:textSize="10dp"
+        android:layout_margin="24dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
         android:text="TextView"
         tools:text="@string/app_name" />
 </LinearLayout>

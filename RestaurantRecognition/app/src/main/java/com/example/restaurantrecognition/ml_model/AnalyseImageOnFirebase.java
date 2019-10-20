@@ -4,9 +4,15 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.firestore.DatabaseManagement;
+import com.example.restaurantrecognition.firestore.Restaurant;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.ml.common.FirebaseMLException;
@@ -17,21 +23,40 @@ import com.google.firebase.ml.custom.FirebaseModelInputs;
 import com.google.firebase.ml.custom.FirebaseModelInterpreter;
 import com.google.firebase.ml.custom.FirebaseModelInterpreterOptions;
 import com.google.firebase.ml.custom.FirebaseModelOutputs;
+import java.util.ArrayList;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import butterknife.BindView;
 
-public class AnalyseImageOnFirebase extends Activity {
+public class AnalyseImageOnFirebase {
 
     private FirebaseModelOutputs output;
+    private DatabaseManagement dbManagement = new DatabaseManagement();
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 11;
+    public CharSequence getPrediction = "Cannot predict";
 
+    private void retrievePredictions(ArrayList<Restaurant> restaurantsList, int id, float maxProbability){
+        for (Restaurant res : restaurantsList){
+            if (Integer.parseInt(res.getId()) == id){
+                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, res.getName(), maxProbability);
+                Log.i("Results: ", String.format("Id: %d, Name: %s, Prob: %1.4f", id, res.getName(), maxProbability));
+                break;
+            }
+        }
+    }
 
-    public void sendImagetoFirebase(Bitmap image) {
+    private int getIdOfBestRestaurant(float[] probabilities){
+        int bestId = 0;
+        for (int id = 0; id < probabilities.length; id++) {
+            if (probabilities[id] > probabilities[bestId]){
+                bestId = id;
+            }
+        }
+        return bestId;
+    }
+
+    public CharSequence sendImagetoFirebase(Bitmap image) {
         FirebaseCustomLocalModel localModel;
         FirebaseModelInterpreterOptions options;
         FirebaseModelInputOutputOptions inputOutputOptions;
@@ -56,10 +81,11 @@ public class AnalyseImageOnFirebase extends Activity {
                     public void onSuccess(FirebaseModelOutputs result) {
                         float[][] output = result.getOutput(0);
                         float[] probabilities = output[0];
-                        for (int i = 0; i < probabilities.length; i++) {
-//                            String label = reader.readLine();
-                            Log.i("My results", String.format("%1.4f", probabilities[i]));
+                        for (int i = 0; i < probabilities.length; i++){
+                            System.out.println(probabilities[i]);
                         }
+                        int bestId = getIdOfBestRestaurant(probabilities);
+                        dbManagement.readData(restaurantArrayList -> retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]));
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -70,6 +96,7 @@ public class AnalyseImageOnFirebase extends Activity {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
+        return getPrediction;
     }
 
     private float[][][][] imagePreProcessing(Bitmap image) {
