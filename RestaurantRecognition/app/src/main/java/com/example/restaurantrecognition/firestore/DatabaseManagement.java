@@ -26,7 +26,12 @@ public class DatabaseManagement {
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     for (DocumentSnapshot document : task.getResult()) {
-                        Restaurant restaurant = new Restaurant(document.getId(),null,null,0,0,null);
+                        Restaurant restaurant = new Restaurant(document.getId(),
+                                document.get("id").toString(),
+                                document.get("name").toString(),
+                                document.getGeoPoint("gps").getLatitude(),
+                                document.getGeoPoint("gps").getLongitude(),
+                                null);
                         restaurantList.add(restaurant);
                     }
                     fireStoreCallback.onCallBack(restaurantList);
@@ -49,6 +54,7 @@ public class DatabaseManagement {
     // Example to retrieve data , use this code wherever you want to get the data
     public ArrayList<Restaurant> getAllData() {
 
+        //DatabaseManagement db = new DatabaseManagement()
         //db.readData(restaurantArrayList -> Log.d("Size of array: ", String.valueOf(restaurantArrayList.size())));
 
         ArrayList<Restaurant> restaurants = new ArrayList<>();
