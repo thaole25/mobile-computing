@@ -1,5 +1,6 @@
 package com.example.restaurantrecognition.ml_model;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
@@ -18,15 +19,17 @@ import com.google.firebase.ml.custom.FirebaseModelInterpreterOptions;
 import com.google.firebase.ml.custom.FirebaseModelOutputs;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class AnalyseImageOnFirebase {
+public class AnalyseImageOnFirebase extends Activity {
 
     private FirebaseModelOutputs output;
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 11;
+
 
     public void sendImagetoFirebase(Bitmap image) {
         FirebaseCustomLocalModel localModel;
@@ -53,12 +56,10 @@ public class AnalyseImageOnFirebase {
                     public void onSuccess(FirebaseModelOutputs result) {
                         float[][] output = result.getOutput(0);
                         float[] probabilities = output[0];
-//                        BufferedReader reader = new BufferedReader(new InputStreamReader());
-//                        for (int i = 0; i < probabilities.length; i++) {
+                        for (int i = 0; i < probabilities.length; i++) {
 //                            String label = reader.readLine();
-//                            Log.i("MLKit", String.format("%s: %1.4f", label, probabilities[i]));
-//                            Log.i("My results", String.format("%1.4f", probabilities[i]));
-//                            System.out.println(probabilities[i]);
+                            Log.i("My results", String.format("%1.4f", probabilities[i]));
+                        }
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override

@@ -4,6 +4,7 @@ IMAGES_PATH = "../data/training/images/"
 AUGMENTATION_PATH = "../data/training/augmentation-images/"
 EVALUATION_FOLDER = "evaluation/"
 TEST_FOLDER = "../data/test/"
+TRAIN_FOLDER = "../data/training/"
 
 HISTORY_MOBILENET = "../data/training/model_mobile_history"
 CHECKPOINT_MOBILE = "../data/training/mobile_checkpoint.h5"
