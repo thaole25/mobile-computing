@@ -7,16 +7,19 @@ public class Restaurant implements Serializable {
     String image;
     String name,address;
     String rating;
+    String menuURL;
     double lat;
     double lon;
     
 
-    public Restaurant(String id, String image, String name, String address, String rating, double lat, double lon) {
+    public Restaurant(String id, String image, String name, String address, String rating,
+                      String menuURL, double lat, double lon) {
         this.id = id;
         this.image = image;
         this.name = name;
         this.address = address;
         this.rating = rating;
+        this.menuURL = menuURL;
         this.lat = lat;
         this.lon = lon;
     }
@@ -38,6 +41,8 @@ public class Restaurant implements Serializable {
     public String getRating() {
         return rating;
     }
+
+    public String getMenuURL() { return menuURL;}
 
     public double getLat() { return lat; }
 

@@ -46,7 +46,8 @@
         android:layout_alignParentLeft="true"
         android:layout_marginLeft="23dp"
         android:layout_marginTop="12dp"
-        android:text="Review Content" />
+        android:text="Review Content"
+        android:layout_marginBottom="25dp"/>
 
     <TextView
         android:id="@+id/reviewTime"

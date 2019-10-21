@@ -81,12 +81,29 @@ public class RestaurantResultFragment extends Fragment {
         });
         viewImage3.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // your code here
+
+                String url = restaurant.getMenuURL();
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(browserIntent);
+
+                /*FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                Bundle bundle = new Bundle();
+
+                Restaurant restaurantObject = restaurant;
+                bundle.putSerializable("Restaurant", restaurantObject);
+
+
+                MenuFragment fragment = new MenuFragment();
+
+                fragment.setArguments(bundle);
+                fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();*/
             }
         });
         allReview.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // your code here
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fm.beginTransaction();
                 Bundle bundle = new Bundle();
