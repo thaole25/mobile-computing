@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
@@ -85,6 +87,20 @@ public class RestaurantResultFragment extends Fragment {
         allReview.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // your code here
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                Bundle bundle = new Bundle();
+
+                Restaurant restaurantObject = restaurant;
+                bundle.putSerializable("Restaurant", restaurantObject);
+
+
+                ReviewResultFragment fragment = new ReviewResultFragment();
+
+                fragment.setArguments(bundle);
+                fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
             }
         });
         gMapText.setOnClickListener(new View.OnClickListener() {
