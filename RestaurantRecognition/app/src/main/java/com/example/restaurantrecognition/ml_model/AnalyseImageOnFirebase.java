@@ -99,6 +99,12 @@ public class AnalyseImageOnFirebase {
                                 }
                             }
                         });
+                        if (restaurants.isEmpty()){
+                            Log.i("Error: ", "List empty");
+                        }
+                        for (Restaurant r : restaurants){
+                            Log.i("Restaurants SizeL ", String.format("List: %s",  r.getName()));
+                        }
                         Log.i("Best id: ", String.format("Id: %d,", bestId));
 
                         // Retrieve best prediction from restaurants
