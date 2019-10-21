@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
@@ -31,7 +30,7 @@ public class SearchFromFolder extends Fragment {
 //    @BindView(R.id.imageContainer)
 //    ImageView imageContainer;
 //    @BindView(R.id.txtResult)
-//    TextView txtResult;
+    TextView txtResult;
 
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
     private final int REQUEST_CODE_GET_IMAGE = 25;
@@ -40,19 +39,14 @@ public class SearchFromFolder extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        searchFromFolderModel = ViewModelProviders.of(this).get(SearchFromFolderModel.class);
-        View root = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
-        txt_prediction = root.findViewById(R.id.text_prediction);
-
+        View view = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
+        txtResult = view.findViewById(R.id.text_prediction);
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/*");
         startActivityForResult(intent, REQUEST_CODE_GET_IMAGE);
 
-//        View root = inflater.inflate(R.layout.fragment_search_from_folder, container, false);
-//        final TextView textView = root.findViewById(R.id.text_recent_matches);
-
-        return super.onCreateView(inflater, container, savedInstanceState);
+        return view;
     }
 
     @Override
@@ -65,16 +59,7 @@ public class SearchFromFolder extends Fragment {
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
                     CharSequence prediction = aiModel.sendImagetoFirebase(imageBitmap);
-                    searchFromFolderModel.getText().observe(this, new Observer<String>() {
-                        @Override
-                        public void onChanged(String s) {
-                            txt_prediction.setText(prediction);
-
-                        }
-                    });
-
-//                    txtResult.setText(prediction);
-//                    imageContainer.setImageBitmap(imageBitmap);
+                    txtResult.setText(prediction);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
