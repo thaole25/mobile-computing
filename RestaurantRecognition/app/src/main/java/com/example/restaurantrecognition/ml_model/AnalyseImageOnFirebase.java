@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
+import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.firestore.Restaurant;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -36,14 +37,16 @@ public class AnalyseImageOnFirebase {
     private final int IMG_CLASSES = 11;
     public CharSequence getPrediction = "Cannot predict";
 
-    private void retrievePredictions(ArrayList<Restaurant> restaurantsList, int id, float maxProbability){
-        for (Restaurant res : restaurantsList){
-            if (Integer.parseInt(res.getId()) == id){
-                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, res.getName(), maxProbability);
-                Log.i("Results: ", String.format("Id: %d, Name: %s, Prob: %1.4f", id, res.getName(), maxProbability));
-                break;
+    private Prediction retrievePredictions(ArrayList<Restaurant> restaurantsList, int id, float maxProbability){
+        for (Restaurant restaurant : restaurantsList){
+            if (Integer.parseInt(restaurant.getId()) == id){
+                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability);
+                Log.i("Results: ", String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability));
+                Prediction prediction = new Prediction(restaurant, maxProbability);
+                return prediction;
             }
         }
+        return null;
     }
 
     private int getIdOfBestRestaurant(float[] probabilities){
@@ -85,7 +88,24 @@ public class AnalyseImageOnFirebase {
                             System.out.println(probabilities[i]);
                         }
                         int bestId = getIdOfBestRestaurant(probabilities);
-                        dbManagement.readData(restaurantArrayList -> retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]));
+
+                        //Retrieve restaurants from firestore
+                        ArrayList<Restaurant> restaurants = new ArrayList<>();
+                        dbManagement.readData(new DatabaseManagement.FirestoreCallBack() {
+                            @Override
+                            public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
+                                for (Restaurant restaurant: restaurantArrayList) {
+                                    restaurants.add(restaurant);
+                                }
+                            }
+                        });
+
+                        // Retrieve best prediction from restaurants
+                        Prediction prediction = retrievePredictions(restaurants, bestId, probabilities[bestId]);
+                        if (prediction != null){
+                            getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
+                        }
+
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
