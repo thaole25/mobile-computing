@@ -101,6 +101,7 @@ public class AnalyseImageOnFirebase {
 
                         // Retrieve best prediction from restaurants
                         Prediction prediction = retrievePredictions(restaurants, bestId, probabilities[bestId]);
+                        getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
 
                     }
                 }).addOnFailureListener(new OnFailureListener() {

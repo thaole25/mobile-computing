@@ -8,4 +8,20 @@ public class Prediction {
         this.restaurant = restaurant;
         this.prediction = prediction;
     }
+
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
+    public void setRestaurant(Restaurant restaurant) {
+        this.restaurant = restaurant;
+    }
+
+    public float getPrediction() {
+        return prediction;
+    }
+
+    public void setPrediction(float prediction) {
+        this.prediction = prediction;
+    }
 }
