@@ -99,11 +99,6 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
                                 if (prediction != null){
                                     finalOuput = String.format("Id: %s, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
                                     Log.i("Final inside: ", finalOuput);
-
-                                    SearchFromFolder fragment = (SearchFromFolder)getSupportFragmentManager().findFragmentById(R.id.text_prediction).getActivity();
-                                    fragment.setTextPrediction("test");
-                                    SearchFromFolder.class..setText((new myCurrentclass_Name(this.context_name)).some_array[value]);
-
                                 }
                             }
                         });
