@@ -35,12 +35,12 @@ public class AnalyseImageOnFirebase {
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 11;
-    public CharSequence getPrediction = "Cannot predict";
+    private String finalOuput = "Cannot predict";
 
     private Prediction retrievePredictions(ArrayList<Restaurant> restaurantsList, int id, float maxProbability){
         for (Restaurant restaurant : restaurantsList){
             if (Integer.parseInt(restaurant.getId()) == id){
-                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability);
+//                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability);
                 Log.i("Results: ", String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability));
                 Prediction prediction = new Prediction(restaurant, maxProbability);
                 return prediction;
@@ -59,7 +59,7 @@ public class AnalyseImageOnFirebase {
         return bestId;
     }
 
-    public CharSequence sendImagetoFirebase(Bitmap image) {
+    public String sendImagetoFirebase(Bitmap image) {
         FirebaseCustomLocalModel localModel;
         FirebaseModelInterpreterOptions options;
         FirebaseModelInputOutputOptions inputOutputOptions;
@@ -84,9 +84,9 @@ public class AnalyseImageOnFirebase {
                     public void onSuccess(FirebaseModelOutputs result) {
                         float[][] output = result.getOutput(0);
                         float[] probabilities = output[0];
-                        for (int i = 0; i < probabilities.length; i++){
-                            System.out.println(probabilities[i]);
-                        }
+//                        for (int i = 0; i < probabilities.length; i++){
+//                            System.out.println(probabilities[i]);
+//                        }
                         int bestId = getIdOfBestRestaurant(probabilities);
 
                         //Retrieve restaurants from firestore
@@ -99,11 +99,12 @@ public class AnalyseImageOnFirebase {
                                 }
                             }
                         });
+                        Log.i("Best id: ", String.format("Id: %d,", bestId));
 
                         // Retrieve best prediction from restaurants
                         Prediction prediction = retrievePredictions(restaurants, bestId, probabilities[bestId]);
                         if (prediction != null){
-                            getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
+                            finalOuput = String.format("Id: %d, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
                         }
 
                     }
@@ -116,7 +117,7 @@ public class AnalyseImageOnFirebase {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
-        return getPrediction;
+        return finalOuput;
     }
 
     private float[][][][] imagePreProcessing(Bitmap image) {
@@ -126,9 +127,9 @@ public class AnalyseImageOnFirebase {
         for (int x = 0; x < IMG_SIZE; x++) {
             for (int y = 0; y < IMG_SIZE; y++) {
                 int pixel = bitmap.getPixel(x, y);
-                input[batchNum][x][y][0] = (Color.red(pixel)) / 255;
-                input[batchNum][x][y][1] = (Color.green(pixel)) / 255;
-                input[batchNum][x][y][2] = (Color.blue(pixel)) / 255;
+                input[batchNum][x][y][0] = (Color.red(pixel)) / 128.0f; /// 255;
+                input[batchNum][x][y][1] = (Color.green(pixel)) / 128.0f;  // / 255;
+                input[batchNum][x][y][2] = (Color.blue(pixel)) / 128.0f; /// / 255;
             }
         }
         return input;
