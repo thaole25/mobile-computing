@@ -1,5 +1,6 @@
 data/*
 AIModel/api_key/*
+AIModel/__pycache__/*
 .vscode/*
 
 # Built application files
