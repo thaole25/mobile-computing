@@ -9,11 +9,13 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
 import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.firestore.Restaurant;
+import com.example.restaurantrecognition.ui.search.SearchFromFolder;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.ml.common.FirebaseMLException;
@@ -28,7 +30,7 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 
-public class AnalyseImageOnFirebase {
+public class AnalyseImageOnFirebase extends FragmentActivity {
 
     private FirebaseModelOutputs output;
     private DatabaseManagement dbManagement = new DatabaseManagement();
@@ -90,23 +92,22 @@ public class AnalyseImageOnFirebase {
                         int bestId = getIdOfBestRestaurant(probabilities);
 
                         //Retrieve restaurants from firestore
-                        ArrayList<Restaurant> restaurants = new ArrayList<>();
                         dbManagement.readData(new DatabaseManagement.FirestoreCallBack() {
                             @Override
                             public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
-                                for (Restaurant restaurant: restaurantArrayList) {
-                                    restaurants.add(restaurant);
+                                Prediction prediction = retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]);
+                                if (prediction != null){
+                                    finalOuput = String.format("Id: %s, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
+                                    Log.i("Final inside: ", finalOuput);
+
+                                    SearchFromFolder fragment = (SearchFromFolder)getSupportFragmentManager().findFragmentById(R.id.text_prediction).getActivity();
+                                    fragment.setTextPrediction("test");
+                                    SearchFromFolder.class..setText((new myCurrentclass_Name(this.context_name)).some_array[value]);
+
                                 }
                             }
                         });
                         Log.i("Best id: ", String.format("Id: %d,", bestId));
-
-                        // Retrieve best prediction from restaurants
-                        Prediction prediction = retrievePredictions(restaurants, bestId, probabilities[bestId]);
-                        if (prediction != null){
-                            finalOuput = String.format("Id: %d, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
-                        }
-
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override

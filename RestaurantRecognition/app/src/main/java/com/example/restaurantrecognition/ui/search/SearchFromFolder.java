@@ -52,4 +52,8 @@ public class SearchFromFolder extends Fragment {
             }
         }
     }
+
+    public void setTextPrediction(String resultPrediction){
+        txtResult.setText(resultPrediction);
+    }
 }
