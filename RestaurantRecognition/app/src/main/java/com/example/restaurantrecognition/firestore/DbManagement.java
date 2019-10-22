@@ -73,7 +73,6 @@ public class DbManagement extends Fragment {
 
             return restaurantList;
         }
-        SearchFromFolder searchFromFolder;
 
         @Override
         protected void onPostExecute(ArrayList<Restaurant> restaurants) {
