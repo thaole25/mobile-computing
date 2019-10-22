@@ -1,17 +1,18 @@
 package com.example.restaurantrecognition.ml_model;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageButton;
-import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
+
 import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.firestore.Restaurant;
+import com.google.android.gms.common.util.ArrayUtils;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+
 
 public class AnalyseImageOnFirebase extends FragmentActivity {
     private final int IMG_SIZE = 224;
@@ -27,33 +28,35 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
                 input[batchNum][x][y][0] = (Color.red(pixel)) / 255.0f;
                 input[batchNum][x][y][1] = (Color.green(pixel)) / 255.0f;
                 input[batchNum][x][y][2] = (Color.blue(pixel)) / 255.0f;
-//                Log.i("Pixel : ", String.format("number %d", Color.red(pixel)));
             }
         }
-
         return input;
     }
 
-    public Prediction retrievePredictions(ArrayList<Restaurant> restaurantsList, int id, float maxProbability){
-        for (Restaurant restaurant : restaurantsList){
-            if (Integer.parseInt(restaurant.getId()) == id){
-//                getPrediction = String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability);
-                Log.i("Results: ", String.format("Id: %d, Name: %s, Prob: %1.4f", id, restaurant.getName(), maxProbability));
-                Prediction prediction = new Prediction(restaurant, maxProbability);
-                return prediction;
+    public ArrayList<Prediction> retrieveTopPredictions(ArrayList<Restaurant> restaurantsList, float[] probabilities, int topNumber) {
+        ArrayList<Prediction> bestRestaurantsList = new ArrayList<>();
+        float[] copyProbabititiles = Arrays.copyOf(probabilities, probabilities.length);
+        ArrayList<Integer> restaurantIndices = new ArrayList<>();
+        Arrays.sort(copyProbabititiles);
+        int start = copyProbabititiles.length - 1;
+        int end = copyProbabititiles.length - topNumber;
+        for (int i = start; i >= end; i--) {
+            for (int j = 0; j < probabilities.length; j++) {
+                if (probabilities[j] == copyProbabititiles[i]) {
+                    restaurantIndices.add(j);
+                    break;
+                }
             }
         }
-        return null;
-    }
-
-    public int getIdOfBestRestaurant(float[] probabilities){
-        int bestId = 0;
-        for (int id = 0; id < probabilities.length; id++) {
-            if (probabilities[id] > probabilities[bestId]){
-                bestId = id;
+        for (Integer resIndex : restaurantIndices) {
+            for (Restaurant res : restaurantsList) {
+                if (Integer.parseInt(res.getId()) == resIndex) {
+                    Prediction prediction = new Prediction(res, probabilities[resIndex]);
+                    bestRestaurantsList.add(prediction);
+                }
             }
         }
-        return bestId;
+        return bestRestaurantsList;
     }
 }
 

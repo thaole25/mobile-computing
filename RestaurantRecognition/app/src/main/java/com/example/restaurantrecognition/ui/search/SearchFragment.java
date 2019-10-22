@@ -1,5 +1,6 @@
 package com.example.restaurantrecognition.ui.search;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import android.content.Intent;
@@ -71,6 +72,10 @@ import com.google.firebase.storage.UploadTask;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -367,54 +372,44 @@ public class SearchFragment extends Fragment implements LocationListener {
                         public void onSuccess(FirebaseModelOutputs result) {
                             float[][] output = result.getOutput(0);
                             float[] probabilities = output[0];
-//                        for (int i = 0; i < probabilities.length; i++){
-//                            System.out.println(probabilities[i]);
-//                        }
-                            int bestId = aiModel.getIdOfBestRestaurant(probabilities);
-
                             //Retrieve restaurants from firestore
                             dbManagement.readData(new DatabaseManagement.FirestoreCallBack() {
+                                @SuppressLint("SetTextI18n")
                                 @Override
                                 public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
-                                    Prediction prediction = aiModel.retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]);
-                                    if (prediction != null) {
-                                        String bestPredictionResult = String.format("Id: %s, Name: %s, Prob: %1.4f",
-                                                prediction.getRestaurant().getId(),
-                                                prediction.getRestaurant().getName(),
-                                                prediction.getPrediction());
-                                        Log.d("Best prediction by ML ", bestPredictionResult);
-                                    }
-                                    Prediction closeRestaurant = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
-                                    if (closeRestaurant != null) {
-                                        String closeRestaurantResult = String.format("Id: %s, Name: %s, Distance: %1.4f",
-                                                closeRestaurant.getRestaurant().getId(),
-                                                closeRestaurant.getRestaurant().getName(),
-                                                closeRestaurant.getDistance());
-                                        Log.d("Close restaurant by GPS", closeRestaurantResult);
-                                    }
-
-                                    if (closeRestaurant == null && prediction == null)
+                                    ArrayList<Prediction> bestRestaurants = aiModel.retrieveTopPredictions(restaurantArrayList, probabilities, 3);
+                                    ArrayList<Prediction> closeRestaurantList = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
+                                    if (closeRestaurantList.isEmpty() && bestRestaurants.isEmpty())
                                         txtResult.setText(errorPredictionMessage);
-                                    else {
-                                        if (prediction.getRestaurant().getId() == closeRestaurant.getRestaurant().getId())
-                                            txtResult.setText("Restaurant: " + prediction.getRestaurant().getName() +
-                                                    " Id: " + prediction.getRestaurant().getId() +
-                                                    " Probability: " + prediction.getPrediction() +
-                                                    " Distance: " + closeRestaurant.getDistance()
-                                            );
-                                        else
-                                            txtResult.setText("There are two restaurants: \n" +
-                                                    " Id: " + closeRestaurant.getRestaurant().getId() +
-                                                    " Restaurant 1: " + closeRestaurant.getRestaurant().getName() +
-                                                    " Probability: " + closeRestaurant.getPrediction() + "\n" +
-                                                    " Id: " + prediction.getRestaurant().getId() +
-                                                    "Restaurant 2: " + prediction.getRestaurant().getName() +
-                                                    " Probability: " + prediction.getPrediction()
-                                            );
+                                    else if (closeRestaurantList.isEmpty()) {
+                                        // Return top 3 restaurants by prediction
+                                        String result = "Donot have GPS results \n";
+                                        for (Prediction res : bestRestaurants) {
+                                            result += "Name: " + res.getRestaurant().getName() + " Score: " + res.getScore() + "\n";
+                                        }
+                                        txtResult.setText(result);
+                                    } else {
+                                        String result = "Got GPS results: \n";
+                                        ArrayList<Prediction> combinedResults = new ArrayList<>();
+                                        for (Prediction bestRes : bestRestaurants) {
+                                            for (Prediction closeRes : closeRestaurantList) {
+                                                if (bestRes.getRestaurant().getId() == closeRes.getRestaurant().getId()) {
+                                                    Prediction prediction = new Prediction(bestRes.getRestaurant(), bestRes.getScore());
+                                                    combinedResults.add(prediction);
+                                                }
+                                            }
+                                        }
+                                        if (combinedResults.isEmpty()) {
+                                            for (Prediction res : bestRestaurants) {
+                                                result += "Name: " + res.getRestaurant().getName() + " Score: " + res.getScore() + "\n";
+                                            }
+                                        } else {
+                                            result += "Name: " + combinedResults.get(0).getRestaurant().getName() + " Score: " + combinedResults.get(0).getScore() + "\n";
+                                        }
+                                        txtResult.setText(result);
                                     }
                                 }
                             });
-                            Log.i("Best id: ", String.format("Id: %d,", bestId));
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                 @Override

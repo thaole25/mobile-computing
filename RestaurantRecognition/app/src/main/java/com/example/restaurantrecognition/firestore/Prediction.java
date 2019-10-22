@@ -2,12 +2,12 @@ package com.example.restaurantrecognition.firestore;
 
 public class Prediction {
     Restaurant restaurant;
-    float prediction;
+    float score;
     double distance;
 
-    public Prediction(Restaurant restaurant, float prediction) {
+    public Prediction(Restaurant restaurant, float score) {
         this.restaurant = restaurant;
-        this.prediction = prediction;
+        this.score = score;
     }
 
     public Prediction() {}
@@ -28,11 +28,11 @@ public class Prediction {
         this.distance = distance;
     }
 
-    public float getPrediction() {
-        return prediction;
+    public float getScore() {
+        return score;
     }
 
-    public void setPrediction(float prediction) {
-        this.prediction = prediction;
+    public void setScore(float score) {
+        this.score = score;
     }
 }
