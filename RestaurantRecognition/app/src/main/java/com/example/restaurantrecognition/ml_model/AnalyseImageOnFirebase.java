@@ -42,7 +42,7 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
         int end = copyProbabititiles.length - topNumber;
         for (int i = start; i >= end; i--) {
             for (int j = 0; j < probabilities.length; j++) {
-                if (probabilities[j] == copyProbabititiles[i]) {
+                if (probabilities[j] >= 0.4 && probabilities[j] == copyProbabititiles[i]) {
                     restaurantIndices.add(j);
                     break;
                 }

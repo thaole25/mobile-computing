@@ -24,7 +24,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,10 +71,6 @@ import com.google.firebase.storage.UploadTask;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -84,11 +79,7 @@ import com.example.restaurantrecognition.ui.FragmentInteractionListener;
 
 import id.zelory.compressor.Compressor;
 
-import static androidx.core.content.ContextCompat.getExternalFilesDirs;
-
 import static android.app.Activity.RESULT_OK;
-
-import com.example.restaurantrecognition.ui.FragmentInteractionListener;
 
 public class SearchFragment extends Fragment implements LocationListener {
     public LocationManager locationManager;
@@ -104,19 +95,15 @@ public class SearchFragment extends Fragment implements LocationListener {
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 11;
 
-    //    private TextView txtResult;
+//    private TextView txtResult;
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
     private GPSLocation gpsLocation = new GPSLocation();
 
     private final int REQUEST_CODE_GET_IMAGE = 25;
 
-    private FirebaseModelOutputs output;
     private DatabaseManagement dbManagement = new DatabaseManagement();
 
     private String errorPredictionMessage = "Cannot predict";
-
-//    @BindView(R.id.btnSearchImage)
-//    Button buttonSearchImage;
 
     @BindView(R.id.view_finder)
     TextureView textureView;
@@ -228,8 +215,13 @@ public class SearchFragment extends Fragment implements LocationListener {
                     }).addOnSuccessListener(taskSnapshot -> {
                         Toast.makeText(getContext(), "Photo uploaded to cloud!", Toast.LENGTH_SHORT).show();
                         Bitmap imageBitmap = BitmapFactory.decodeFile(file.getPath());
-                        sendImagetoFirebase(imageBitmap);
-//                        openResultFragment();
+                        finalPrediction = sendImagetoFirebase(imageBitmap);
+                        if (finalPrediction != null){
+                            Log.d("Predicted Restaurant: ", "Restaurant Name: " + finalPrediction.getRestaurant().getName());
+                            openResultFragment(finalPrediction);
+                        }else{
+                            txtResult.setText(errorPredictionMessage);
+                        }
                     });
 
                 }
@@ -308,16 +300,21 @@ public class SearchFragment extends Fragment implements LocationListener {
         return true;
     }
 
-    private void openResultFragment() {
+    private void openResultFragment(Prediction predictedRestaurant) {
         FragmentManager fm = getActivity().getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fm.beginTransaction();
         Bundle bundle = new Bundle();
 
         /*Mocking Data*/
-        bundle.putString("Name", "Pronto Pizza");
-        bundle.putDouble("Latitude", -37.7);
-        bundle.putDouble("Longitude", 144.9);
-        bundle.putString("Address", "Parkville, University of Melbourne, Grattan Street");
+//        bundle.putString("Name", "Pronto Pizza");
+//        bundle.putDouble("Latitude", -37.7);
+//        bundle.putDouble("Longitude", 144.9);
+//        bundle.putString("Address", "Parkville, University of Melbourne, Grattan Street");
+
+        bundle.putString("Name", predictedRestaurant.getRestaurant().getName());
+        bundle.putDouble("Latitide", predictedRestaurant.getRestaurant().getLatitude());
+        bundle.putDouble("Longitude", predictedRestaurant.getRestaurant().getLongitude());
+        bundle.putString("Address", "Address");
 
         RestaurantResultFragment fragment = new RestaurantResultFragment();
 
@@ -336,7 +333,12 @@ public class SearchFragment extends Fragment implements LocationListener {
                 Bitmap imageBitmap = null;
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
-                    sendImagetoFirebase(imageBitmap);
+                    finalPrediction = sendImagetoFirebase(imageBitmap);
+                    if (finalPrediction != null){
+                        openResultFragment(finalPrediction);
+                    }else{
+                        txtResult.setText(errorPredictionMessage);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -344,7 +346,8 @@ public class SearchFragment extends Fragment implements LocationListener {
         }
     }
 
-    public void sendImagetoFirebase(Bitmap image) {
+    public Prediction sendImagetoFirebase(Bitmap image) {
+        Prediction finalPrediction;
         Log.d("7.1 Status: ", "send image to firebase");
 
         FirebaseCustomLocalModel localModel;
@@ -379,34 +382,22 @@ public class SearchFragment extends Fragment implements LocationListener {
                                 public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
                                     ArrayList<Prediction> bestRestaurants = aiModel.retrieveTopPredictions(restaurantArrayList, probabilities, 3);
                                     ArrayList<Prediction> closeRestaurantList = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
-                                    if (closeRestaurantList.isEmpty() && bestRestaurants.isEmpty())
-                                        txtResult.setText(errorPredictionMessage);
-                                    else if (closeRestaurantList.isEmpty()) {
-                                        // Return top 3 restaurants by prediction
-                                        String result = "Donot have GPS results \n";
-                                        for (Prediction res : bestRestaurants) {
-                                            result += "Name: " + res.getRestaurant().getName() + " Score: " + res.getScore() + "\n";
-                                        }
-                                        txtResult.setText(result);
-                                    } else {
-                                        String result = "Got GPS results: \n";
+                                    if (! bestRestaurants.isEmpty()) {
                                         ArrayList<Prediction> combinedResults = new ArrayList<>();
                                         for (Prediction bestRes : bestRestaurants) {
                                             for (Prediction closeRes : closeRestaurantList) {
                                                 if (bestRes.getRestaurant().getId() == closeRes.getRestaurant().getId()) {
                                                     Prediction prediction = new Prediction(bestRes.getRestaurant(), bestRes.getScore());
                                                     combinedResults.add(prediction);
+                                                    break;
                                                 }
                                             }
                                         }
                                         if (combinedResults.isEmpty()) {
-                                            for (Prediction res : bestRestaurants) {
-                                                result += "Name: " + res.getRestaurant().getName() + " Score: " + res.getScore() + "\n";
-                                            }
+                                            finalPrediction = new Prediction(bestRestaurants.get(0).getRestaurant(), bestRestaurants.get(0).getScore());
                                         } else {
-                                            result += "Name: " + combinedResults.get(0).getRestaurant().getName() + " Score: " + combinedResults.get(0).getScore() + "\n";
+                                            finalPrediction = new Prediction(combinedResults.get(0).getRestaurant(), combinedResults.get(0).getScore());
                                         }
-                                        txtResult.setText(result);
                                     }
                                 }
                             });
@@ -420,6 +411,7 @@ public class SearchFragment extends Fragment implements LocationListener {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
+        return finalPrediction;
     }
 
     @Override
