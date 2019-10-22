@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -130,5 +131,6 @@ public class SideMenuActivity extends AppCompatActivity
     public void onListFragmentInteraction(RecentMatchItem item) {
         // TODO: redirect to relevant restaurant info
         Log.d(getCallingPackage(), "selected: "+item.id);
+        Toast.makeText(getApplicationContext(), "clicked on restaurant: " + item.restaurantName, Toast.LENGTH_LONG).show();
     }
 }

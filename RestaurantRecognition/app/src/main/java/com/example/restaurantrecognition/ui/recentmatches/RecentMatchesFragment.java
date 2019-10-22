@@ -23,14 +23,10 @@ public class RecentMatchesFragment extends Fragment {
 
     private OnListFragmentInteractionListener mListener;
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public RecentMatchesFragment() {
     }
 
-    public static RecentMatchesFragment newInstance(int columnCount) {
+    public static RecentMatchesFragment newInstance() {
         RecentMatchesFragment fragment = new RecentMatchesFragment();
         return fragment;
     }
