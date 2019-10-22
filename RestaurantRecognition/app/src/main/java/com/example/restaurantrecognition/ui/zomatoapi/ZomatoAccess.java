@@ -188,6 +188,66 @@ public class ZomatoAccess {
         return textResult;
     }
 
+    // Getting a list of restaurant daily menu
+    public String getDailyMenu(String res_id) {
+        final String method_path = "dailymenu?";
+
+        URL url = null;
+        HttpURLConnection conn = null;
+
+        String textResult = "";
+        String urlString="";
+        final int countParameter = 5;
+
+        try {
+            // Define Basic String URL
+            urlString+=BASE_URL;
+            urlString+=method_path;
+
+            // Add Request Body to URL;
+            urlString+="res_id="; urlString+=res_id;
+
+            // Define URL
+            url = new URL(urlString);
+
+            // Open connection
+            conn = (HttpURLConnection) url.openConnection();
+
+            // Set the timeout
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
+
+            // Set connection method to GET
+            conn.setRequestMethod("GET");
+
+            // Add HTTP Headers
+            conn.setRequestProperty("user-key",API_KEY);
+            conn.setRequestProperty("Content-Type","application/json");
+            conn.setRequestProperty("Accept","application/json");
+
+            // Read the response
+            try {
+                Scanner inStream = new Scanner(conn.getInputStream());
+                // Read the input stream and store it as string
+                while(inStream.hasNextLine()) {
+                    textResult+=inStream.nextLine();
+                }
+            } catch (Exception e1) {
+                Scanner inStream = new Scanner(conn.getErrorStream());
+                while(inStream.hasNextLine()) {
+                    textResult+=inStream.nextLine();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            conn.disconnect();
+        }
+
+        return textResult;
+    }
+
     // We might not need this as getRestaurant already include the restaurant details
     public String getRestaurantDetails(String res_id) {
         final String method_path = "restaurant?";

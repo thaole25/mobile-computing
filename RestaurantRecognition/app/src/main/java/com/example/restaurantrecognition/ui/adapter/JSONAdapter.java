@@ -1,10 +1,5 @@
 package com.example.restaurantrecognition.ui.adapter;
 
-import android.os.AsyncTask;
-import android.util.Log;
-
-import com.google.gson.JsonObject;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,6 +81,41 @@ public class JSONAdapter {
         }
 
         return reviews;
+    }
+
+    public List<DailyMenu> getDailyMenu(String str) {
+        List<DailyMenu> menus = new ArrayList<>();
+
+        JSONObject completeJSON = null;
+        try {
+            completeJSON = new JSONObject(str);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            JSONArray jsonArray = completeJSON.getJSONArray("daily_menu");
+            JSONObject menuObject;
+
+            for (int i=0; i<jsonArray.length(); i++) {
+                List<Food> foodList = new ArrayList<>();
+                menuObject = jsonArray.getJSONObject(i);
+                JSONArray foodArray = menuObject.getJSONArray("dishes");
+                JSONObject eachFood;
+
+                for (int j=0; j<foodArray.length(); j++) {
+                    eachFood = foodArray.getJSONObject(j);
+                    foodList.add(new Food(eachFood.getString("dish_id"), eachFood.getString("name"), eachFood.getString("price")));
+                }
+
+                menus.add(new DailyMenu(menuObject.getString("daily_menu_id"),menuObject.getString("name"),
+                        menuObject.getString("daily_start"),menuObject.getString("daily_end"),foodList));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return menus;
     }
 
 }

@@ -20,7 +20,7 @@
                 android:id="@+id/reviews"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/dailyText"
+                android:layout_below="@+id/dailylistView"
                 android:layout_alignParentLeft="true"
                 android:layout_marginLeft="17dp"
                 android:layout_marginTop="25dp"
@@ -34,7 +34,7 @@
                 android:id="@+id/allreviews"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/dailyText"
+                android:layout_below="@id/dailylistView"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="10dp"
                 android:layout_marginTop="27dp"
@@ -167,28 +167,14 @@
                 android:layout_marginBottom="20dp"
                 android:orientation="vertical" />
 
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="101dp"
-                android:layout_height="94dp"
-                android:layout_below="@+id/menuText"
+            <LinearLayout
+                android:id="@+id/dailylistView"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/dailyText"
                 android:layout_alignParentLeft="true"
                 android:layout_marginLeft="17dp"
-                android:layout_marginTop="20dp"
-                android:adjustViewBounds="true"
-                tools:srcCompat="@drawable/dailyicon" />
-
-            <ImageView
-                android:id="@+id/imageView4"
-                android:layout_width="101dp"
-                android:layout_height="94dp"
-                android:layout_below="@+id/menuText"
-                android:layout_marginLeft="30dp"
-                android:layout_marginTop="20dp"
-                android:layout_toRightOf="@+id/imageView3"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                tools:srcCompat="@drawable/normalmenu" />
+                android:orientation="vertical" />
 
             <ImageView
                 android:id="@+id/ratingStar"
@@ -204,25 +190,24 @@
                 android:id="@+id/dailyText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/imageView3"
-                android:layout_alignStart="@+id/imageView3"
-                android:layout_alignLeft="@+id/imageView3"
-                android:layout_marginLeft="0dp"
+                android:layout_below="@id/menuText"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="37dp"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-condensed-light"
-                android:text="Daily Menu" />
+                android:text="Daily Menu"
+                android:textSize="16dp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/normalmenuText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/imageView4"
-                android:layout_alignStart="@+id/imageView4"
-                android:layout_alignLeft="@+id/imageView4"
-                android:layout_marginLeft="0dp"
-                android:layout_marginTop="10dp"
-                android:fontFamily="sans-serif-condensed-light"
-                android:text="Normal Menu" />
+                android:layout_below="@id/addressContent"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="29dp"
+                android:layout_marginRight="11dp"
+                android:text="View Full Menu on Zomato >>" />
 
             <Button
                 android:id="@+id/button"

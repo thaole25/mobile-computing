@@ -22,6 +22,8 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.ui.adapter.DailyMenu;
+import com.example.restaurantrecognition.ui.adapter.Food;
 import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
 import com.example.restaurantrecognition.ui.adapter.Review;
@@ -40,10 +42,10 @@ import java.util.concurrent.ExecutionException;
 public class OtherRestaurantResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
-    TextView viewName, viewAddress, viewRating, gMapText, allReview;
-    ImageView viewImage, viewImage2, viewImage3, ratingStar;
+    TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu;
+    ImageView viewImage, ratingStar;
     Button button;
-    LinearLayout listView;
+    LinearLayout listView, menuView;
 
     String name, address;
     double lat, lon;
@@ -71,6 +73,7 @@ public class OtherRestaurantResultFragment extends Fragment {
         setupOnClickListener();
 
         retrieveRestaurantImage();
+        getDailyMenu();
         retrieveRestaurantReviews(inflater);
 
         return root;
@@ -115,6 +118,26 @@ public class OtherRestaurantResultFragment extends Fragment {
 
     }
 
+    private class GetDailyAsync extends AsyncTask<Restaurant, Void, List<DailyMenu>>{
+
+        List<DailyMenu> dailyList = new ArrayList<>();
+
+        @Override
+        protected List<DailyMenu> doInBackground(Restaurant... restaurants) {
+
+            ZomatoAccess zomatoAccess = new ZomatoAccess();
+            JSONAdapter jsonAdapter = new JSONAdapter();
+
+            //GET DailyMenu JSON
+            String daily = zomatoAccess.getDailyMenu(restaurants[0].getId());
+
+            //GET DailyMenu List
+            dailyList = jsonAdapter.getDailyMenu(daily);
+
+            return dailyList;
+        }
+
+    }
 
     private void setupViewElements(View root) {
 
@@ -122,31 +145,24 @@ public class OtherRestaurantResultFragment extends Fragment {
         viewAddress = root.findViewById(R.id.addressContent);
         viewRating = root.findViewById(R.id.ratingNumber);
         viewImage = root.findViewById(R.id.imageView2);
-        viewImage2 = root.findViewById(R.id.imageView3);
-        viewImage3 = root.findViewById(R.id.imageView4);
         ratingStar = root.findViewById(R.id.ratingStar);
         gMapText = root.findViewById(R.id.googleMapText);
         allReview = root.findViewById(R.id.allreviews);
         listView = root.findViewById(R.id.reviewlistView);
+        menuView = root.findViewById(R.id.dailylistView);
+        normalMenu = root.findViewById(R.id.normalmenuText);
         button = root.findViewById(R.id.button);
 
         viewName.setText(restaurant.getName());
         viewAddress.setText(restaurant.getAddress());
         viewRating.setText(restaurant.getRating());
-        viewImage2.setImageResource(R.drawable.dailyicon);
-        viewImage3.setImageResource(R.drawable.normalmenu);
         ratingStar.setImageResource(R.drawable.staricon);
 
     }
 
     public void setupOnClickListener(){
 
-        viewImage2.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // your code here
-            }
-        });
-        viewImage3.setOnClickListener(new View.OnClickListener() {
+        normalMenu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 String url = restaurant.getMenuURL();
@@ -193,6 +209,47 @@ public class OtherRestaurantResultFragment extends Fragment {
         });
 
     }
+
+    private void getDailyMenu() {
+        GetDailyAsync getDailyAsync = new GetDailyAsync();
+        List<DailyMenu> menuList=null;
+        try {
+            menuList = getDailyAsync.execute(restaurant).get();
+
+            for (int i=0; i<menuList.size(); i++) {
+                DailyMenu menu = menuList.get(i);
+                List<Food> foods = menu.getDishes();
+                View viDaily = inflater.inflate(R.layout.daily_layout, null);
+                TextView dailyName = viDaily.findViewById(R.id.dailyName);
+                TextView dailyStart = viDaily.findViewById(R.id.dailyStart);
+                TextView dailyEnd = viDaily.findViewById(R.id.dailyEnd);
+                dailyName.setText(menu.getName());
+                dailyStart.setText(menu.getStart_date());
+                dailyEnd.setText(menu.getEnd_date());
+                menuView.addView(viDaily);
+
+                for (int j=0; j<foods.size();i++) {
+                    View vi = inflater.inflate(R.layout.dishes_layout, null);
+                    TextView foodName = vi.findViewById(R.id.menuName);
+                    TextView foodPrice = vi.findViewById(R.id.menuPrice);
+                    foodName.setText(foods.get(j).getName());
+                    foodPrice.setText(foods.get(j).getPrice());
+                    menuView.addView(vi);
+                }
+            }
+
+            if (menuList.size()==0) {
+                View vi = inflater.inflate(R.layout.menu_notfound, null);
+                menuView.addView(vi);
+            }
+
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void retrieveRestaurantImage() {
         URL url = null;

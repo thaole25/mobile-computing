@@ -8,9 +8,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,23 +18,21 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.ui.adapter.DailyMenu;
+import com.example.restaurantrecognition.ui.adapter.Food;
 import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
-import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
 import com.example.restaurantrecognition.ui.adapter.Review;
 import com.example.restaurantrecognition.ui.adapter.ReviewListAdapter;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultViewModel;
 import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
-
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,26 +40,24 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.zip.Inflater;
 
 public class RestaurantResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
-    TextView viewName, viewAddress, viewRating, gMapText, allReview;
-    ImageView viewImage, viewImage2, viewImage3, ratingStar;
-    Button button;
-    LinearLayout listView;
+    private TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu;
+    private ImageView viewImage, ratingStar;
+    private Button button;
+    private LinearLayout listView, menuView;
 
-    String name, address;
-    double lat, lon;
+    private String name, address;
+    private double lat, lon;
 
-    ProgressDialog progressDialog;
-    ReviewListAdapter reviewListAdapter;
-    Restaurant restaurant;
-    List<Restaurant> restaurants;
+    private ProgressDialog progressDialog;
+    private Restaurant restaurant;
+    private List<Restaurant> restaurants;
 
-    View root;
-    LayoutInflater inflater;
+    private View root;
+    private LayoutInflater inflater;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -126,6 +122,27 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
+    private class GetDailyAsync extends AsyncTask<Restaurant, Void, List<DailyMenu>>{
+
+        List<DailyMenu> dailyList = new ArrayList<>();
+
+        @Override
+        protected List<DailyMenu> doInBackground(Restaurant... restaurants) {
+
+            ZomatoAccess zomatoAccess = new ZomatoAccess();
+            JSONAdapter jsonAdapter = new JSONAdapter();
+
+            //GET DailyMenu JSON
+            String daily = zomatoAccess.getDailyMenu(restaurants[0].getId());
+
+            //GET DailyMenu List
+            dailyList = jsonAdapter.getDailyMenu(daily);
+
+            return dailyList;
+        }
+
+    }
+
     private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>> {
 
         @Override
@@ -155,6 +172,7 @@ public class RestaurantResultFragment extends Fragment {
             setupOnClickListener();
 
             retrieveRestaurantImage();
+            getDailyMenu();
             retrieveRestaurantReviews(inflater);
 
             progressDialog.dismiss();
@@ -168,31 +186,24 @@ public class RestaurantResultFragment extends Fragment {
         viewAddress = root.findViewById(R.id.addressContent);
         viewRating = root.findViewById(R.id.ratingNumber);
         viewImage = root.findViewById(R.id.imageView2);
-        viewImage2 = root.findViewById(R.id.imageView3);
-        viewImage3 = root.findViewById(R.id.imageView4);
         ratingStar = root.findViewById(R.id.ratingStar);
         gMapText = root.findViewById(R.id.googleMapText);
         allReview = root.findViewById(R.id.allreviews);
+        menuView = root.findViewById(R.id.dailylistView);
         listView = root.findViewById(R.id.reviewlistView);
+        normalMenu = root.findViewById(R.id.normalmenuText);
         button = root.findViewById(R.id.button);
 
         viewName.setText(restaurant.getName());
         viewAddress.setText(restaurant.getAddress());
         viewRating.setText(restaurant.getRating());
-        viewImage2.setImageResource(R.drawable.dailyicon);
-        viewImage3.setImageResource(R.drawable.normalmenu);
         ratingStar.setImageResource(R.drawable.staricon);
 
     }
 
-    public void setupOnClickListener(){
+    private void setupOnClickListener(){
 
-        viewImage2.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // your code here
-            }
-        });
-        viewImage3.setOnClickListener(new View.OnClickListener() {
+        normalMenu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 String url = restaurant.getMenuURL();
@@ -256,17 +267,39 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
-    public void retrieveRestaurantImage() {
-        URL url = null;
-        try {
-            url = new URL(restaurant.getImage());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+    private void getDailyMenu() {
+        GetDailyAsync getDailyAsync = new GetDailyAsync();
+        List<DailyMenu> menuList=null;
+       try {
+            menuList = getDailyAsync.execute(restaurant).get();
 
-        GetImageAsync getImageAsync = new GetImageAsync();
-        try {
-            viewImage.setImageBitmap(getImageAsync.execute(url).get());
+            for (int i=0; i<menuList.size(); i++) {
+                DailyMenu menu = menuList.get(i);
+                List<Food> foods = menu.getDishes();
+                View viDaily = inflater.inflate(R.layout.daily_layout, null);
+                TextView dailyName = viDaily.findViewById(R.id.dailyName);
+                TextView dailyStart = viDaily.findViewById(R.id.dailyStart);
+                TextView dailyEnd = viDaily.findViewById(R.id.dailyEnd);
+                dailyName.setText(menu.getName());
+                dailyStart.setText(menu.getStart_date());
+                dailyEnd.setText(menu.getEnd_date());
+                menuView.addView(viDaily);
+
+                for (int j=0; j<foods.size();i++) {
+                    View vi = inflater.inflate(R.layout.dishes_layout, null);
+                    TextView foodName = vi.findViewById(R.id.menuName);
+                    TextView foodPrice = vi.findViewById(R.id.menuPrice);
+                    foodName.setText(foods.get(j).getName());
+                    foodPrice.setText(foods.get(j).getPrice());
+                    menuView.addView(vi);
+                }
+            }
+
+            if (menuList.size()==0) {
+                View vi = inflater.inflate(R.layout.menu_notfound, null);
+                menuView.addView(vi);
+            }
+
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -274,7 +307,25 @@ public class RestaurantResultFragment extends Fragment {
         }
     }
 
-    public void retrieveRestaurantReviews(LayoutInflater inflater) {
+    private void retrieveRestaurantImage() {
+        URL url = null;
+        try {
+            url = new URL(restaurant.getImage());
+            GetImageAsync getImageAsync = new GetImageAsync();
+            try {
+                viewImage.setImageBitmap(getImageAsync.execute(url).get());
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void retrieveRestaurantReviews(LayoutInflater inflater) {
         GetReviewAsync getReviewAsync = new GetReviewAsync();
         List<Review> reviewList;
         try {
