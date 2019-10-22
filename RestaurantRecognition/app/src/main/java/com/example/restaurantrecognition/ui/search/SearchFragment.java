@@ -4,10 +4,12 @@ package com.example.restaurantrecognition.ui.search;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
@@ -16,7 +18,9 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,16 +33,28 @@ import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-
-
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
+
 import com.example.restaurantrecognition.firestore.Restaurant;
 import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
+import com.example.restaurantrecognition.firestore.Prediction;
+import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.ml.common.FirebaseMLException;
+import com.google.firebase.ml.custom.FirebaseCustomLocalModel;
+import com.google.firebase.ml.custom.FirebaseModelDataType;
+import com.google.firebase.ml.custom.FirebaseModelInputOutputOptions;
+import com.google.firebase.ml.custom.FirebaseModelInputs;
+import com.google.firebase.ml.custom.FirebaseModelInterpreter;
+import com.google.firebase.ml.custom.FirebaseModelInterpreterOptions;
+import com.google.firebase.ml.custom.FirebaseModelOutputs;
+
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -46,20 +62,37 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
 
 import com.example.restaurantrecognition.ui.FragmentInteractionListener;
 import id.zelory.compressor.Compressor;
 
 import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 
+import static android.app.Activity.RESULT_OK;
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
+
 public class SearchFragment extends Fragment {
 
     private final int REQUEST_CODE_PERMISSIONS = 101;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
+    private final int IMG_SIZE = 224;
+    private final int IMG_CHANNEL = 3;
+    private final int IMG_CLASSES = 11;
+
+//    private TextView txtResult;
+    private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
+    private final int REQUEST_CODE_GET_IMAGE = 25;
+
+    private FirebaseModelOutputs output;
+    private DatabaseManagement dbManagement = new DatabaseManagement();
+
+    private String finalOuput = "Cannot predict";
 
 //    @BindView(R.id.btnSearchImage)
 //    Button buttonSearchImage;
@@ -70,7 +103,13 @@ public class SearchFragment extends Fragment {
     @BindView(R.id.imgCapture)
     ImageButton imgBtn;
 
-    //private FragmentInteractionListener mListener;
+    private FragmentInteractionListener mListener;
+    @BindView(R.id.btnChooseFromFolder)
+    Button btnSelectFromFolder;
+
+    @BindView(R.id.text_prediction)
+    TextView txtResult;
+
     private SearchViewModel searchViewModel;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -114,7 +153,7 @@ public class SearchFragment extends Fragment {
                 .setTargetRotation(getActivity().getWindowManager().getDefaultDisplay().getRotation()).build();
         final ImageCapture imgCap = new ImageCapture(imageCaptureConfig);
 
-       imgBtn.setOnClickListener(v -> {
+        imgBtn.setOnClickListener(v -> {
            File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
            imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
                @Override
@@ -154,6 +193,13 @@ public class SearchFragment extends Fragment {
            });
 
        });
+
+        btnSelectFromFolder.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_CODE_GET_IMAGE);
+        });
 
         //bind to lifecycle:
         CameraX.bindToLifecycle(this, preview, imgCap);
@@ -200,7 +246,6 @@ public class SearchFragment extends Fragment {
             } else{
                 Toast.makeText(getContext(), "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
                 getActivity().finish();
-
             }
         }
     }
@@ -232,6 +277,84 @@ public class SearchFragment extends Fragment {
         fragmentTransaction.replace(R.id.fragmentContent, fragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_GET_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                Uri imageUri = data.getData();
+                Bitmap imageBitmap = null;
+                try {
+                    imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
+                    CharSequence prediction = sendImagetoFirebase(imageBitmap);
+                    txtResult.setText(prediction);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public String sendImagetoFirebase(Bitmap image) {
+        Log.d("7.1 Status: ", "send image to firebase");
+
+        FirebaseCustomLocalModel localModel;
+        FirebaseModelInterpreterOptions options;
+        FirebaseModelInputOutputOptions inputOutputOptions;
+
+//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
+        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v2.tflite").build();
+
+        FirebaseModelInterpreter interpreter;
+        try {
+            options = new FirebaseModelInterpreterOptions.Builder(localModel).build();
+            interpreter = FirebaseModelInterpreter.getInstance(options);
+            inputOutputOptions = new FirebaseModelInputOutputOptions.Builder()
+                    .setInputFormat(0, FirebaseModelDataType.FLOAT32, new int[]{1, IMG_SIZE, IMG_SIZE, IMG_CHANNEL})
+                    .setOutputFormat(0, FirebaseModelDataType.FLOAT32, new int[]{1, IMG_CLASSES})
+                    .build();
+
+            float[][][][] input = aiModel.imagePreProcessing(image);
+
+            FirebaseModelInputs inputs = new FirebaseModelInputs.Builder().add(input).build();
+            interpreter.run(inputs,inputOutputOptions).addOnSuccessListener(
+                    new OnSuccessListener<FirebaseModelOutputs>() {
+                        @Override
+                        public void onSuccess(FirebaseModelOutputs result) {
+                            float[][] output = result.getOutput(0);
+                            float[] probabilities = output[0];
+//                        for (int i = 0; i < probabilities.length; i++){
+//                            System.out.println(probabilities[i]);
+//                        }
+                            int bestId = aiModel.getIdOfBestRestaurant(probabilities);
+
+                            //Retrieve restaurants from firestore
+                            dbManagement.readData(new DatabaseManagement.FirestoreCallBack() {
+                                @Override
+                                public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
+                                    Prediction prediction = aiModel.retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]);
+                                    if (prediction != null){
+                                        finalOuput = String.format("Id: %s, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
+                                        Log.d("7.2 Status: ", finalOuput);
+                                        txtResult.setText(finalOuput);
+
+                                    }
+                                }
+                            });
+                            Log.i("Best id: ", String.format("Id: %d,", bestId));
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+
+                }
+            });
+        } catch (FirebaseMLException e) {
+            e.printStackTrace();
+        }
+        return finalOuput;
     }
 
 }

@@ -35,14 +35,16 @@ if __name__ == "__main__":
   
   args = parser.parse_args()
   if args.preprocessingImages:
-    preprocessing.image_augmentation()
+    # preprocessing.image_augmentation()
     preprocessing.create_training_data()
   if args.training:
-    model.run_mobilenet()
+    # model.run_mobilenet()
+    model.save_model()
   if args.runtesting:
+    # testing.create_test_data()
     testing.testing()
   if args.convert:
     convert_to_tensorflowLite()
-  get_all_classes_file()
+  # get_all_classes_file()
 
     
