@@ -107,7 +107,7 @@ public class SearchFragment extends Fragment implements LocationListener {
 
     private FragmentInteractionListener mListener;
     @BindView(R.id.btnChooseFromFolder)
-    Button btnSelectFromFolder;
+    ImageButton btnSelectFromFolder;
 
     @BindView(R.id.text_prediction)
     TextView txtResult;
