@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/dailyName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="25dp"
+        android:text="Menu Name"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dailyStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dailyName"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="10dp"
+        android:text="Start From" />
+
+    <TextView
+        android:id="@+id/timeConnector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dailyName"
+        android:layout_toRightOf="@id/dailyStart"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="-" />
+
+    <TextView
+        android:id="@+id/dailyEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dailyName"
+        android:layout_toRightOf="@id/timeConnector"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="Ends At" />
+
+    <TextView
+        android:id="@+id/DishesList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dailyStart"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="10dp"
+        android:text="Dishes List :" />
+</RelativeLayout>

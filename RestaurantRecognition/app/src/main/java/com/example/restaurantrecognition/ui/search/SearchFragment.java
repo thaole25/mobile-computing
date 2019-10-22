@@ -1,6 +1,7 @@
 package com.example.restaurantrecognition.ui.search;
 
 import android.content.Context;
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -36,13 +37,19 @@ import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
+
 import com.example.restaurantrecognition.firestore.GPSLocation;
 import com.example.restaurantrecognition.firestore.Prediction;
+
 import com.example.restaurantrecognition.firestore.Restaurant;
+import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
+import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -54,6 +61,7 @@ import com.google.firebase.ml.custom.FirebaseModelInputs;
 import com.google.firebase.ml.custom.FirebaseModelInterpreter;
 import com.google.firebase.ml.custom.FirebaseModelInterpreterOptions;
 import com.google.firebase.ml.custom.FirebaseModelOutputs;
+
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -65,7 +73,11 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
 import id.zelory.compressor.Compressor;
+
+import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -118,6 +130,7 @@ public class SearchFragment extends Fragment implements LocationListener {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
 
         mListener = (FragmentInteractionListener) getActivity();
         searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
@@ -181,43 +194,45 @@ public class SearchFragment extends Fragment implements LocationListener {
         final ImageCapture imgCap = new ImageCapture(imageCaptureConfig);
 
         imgBtn.setOnClickListener(v -> {
-            File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
-            imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
-                @Override
-                public void onImageSaved(@NonNull File file) {
-                    Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                    FirebaseStorage storage = FirebaseStorage.getInstance();
-                    StorageReference storageRef = storage.getReference().child("uploads");
-                    StorageMetadata metadata = new StorageMetadata.Builder()
-                            .setContentType("image/jpg")
-                            .build();
-                    File compressedFile = null;
-                    try {
-                        compressedFile = new Compressor(getContext()).compressToFile(file);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Uri filePath = null;
-                    if (compressedFile == null)
-                        filePath = Uri.fromFile(file);
-                    else
-                        filePath = Uri.fromFile(compressedFile);
-                    StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
-                    UploadTask uploadTask = imageRef.putFile(filePath, metadata);
-                    uploadTask.addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to upload to cloud.", Toast.LENGTH_SHORT).show();
-                        Log.d(getTag(), e.toString());
-                    }).addOnSuccessListener(taskSnapshot -> {
-                        Toast.makeText(getContext(), "Photo uploaded to cloud!", Toast.LENGTH_SHORT).show();
-                    });
-                }
+           File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
+           imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
+               @Override
+               public void onImageSaved(@NonNull File file) {
+                   Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                   FirebaseStorage storage = FirebaseStorage.getInstance();
+                   StorageReference storageRef = storage.getReference().child("uploads");
+                   StorageMetadata metadata = new StorageMetadata.Builder()
+                           .setContentType("image/jpg")
+                           .build();
+                   File compressedFile = null;
+                   try {
+                       compressedFile = new Compressor(getContext()).compressToFile(file);
+                   } catch (IOException e) {
+                       e.printStackTrace();
+                   }
+                   Uri filePath = null;
+                   if (compressedFile == null)
+                       filePath = Uri.fromFile(file);
+                   else
+                       filePath = Uri.fromFile(compressedFile);
+                   StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
+                   UploadTask uploadTask = imageRef.putFile(filePath, metadata);
+                   uploadTask.addOnFailureListener(e -> {
+                       Toast.makeText(getContext(), "Failed to upload to cloud.", Toast.LENGTH_SHORT).show();
+                       Log.d(getTag(), e.toString());
+                   }).addOnSuccessListener(taskSnapshot -> {
+                       Toast.makeText(getContext(), "Photo uploaded to cloud!" ,Toast.LENGTH_SHORT).show();
+                       openResultFragment();
+                   });
 
-                @Override
-                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                    Toast.makeText(getContext(), "Failed to save photo", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
+               }
+               @Override
+               public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
+                   Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_SHORT).show();
+               }
+           });
+
+       });
 
         btnSelectFromFolder.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
@@ -283,6 +298,25 @@ public class SearchFragment extends Fragment implements LocationListener {
             }
         }
         return true;
+    }
+
+    private void openResultFragment() {
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+        Bundle bundle = new Bundle();
+
+        /*Mocking Data*/
+        bundle.putString("Name", "Pronto Pizza");
+        bundle.putDouble("Latitude", -37.7);
+        bundle.putDouble("Longitude", 144.9);
+        bundle.putString("Address", "Parkville, University of Melbourne, Grattan Street");
+
+        RestaurantResultFragment fragment = new RestaurantResultFragment();
+
+        fragment.setArguments(bundle);
+        fragmentTransaction.replace(R.id.fragmentContent, fragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -418,4 +452,5 @@ public class SearchFragment extends Fragment implements LocationListener {
         super.onPause();
         locationManager.removeUpdates(this);
     }
+
 }

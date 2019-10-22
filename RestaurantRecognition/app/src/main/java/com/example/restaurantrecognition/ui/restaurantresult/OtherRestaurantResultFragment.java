@@ -8,13 +8,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -41,23 +39,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class RestaurantResultFragment extends Fragment {
+public class OtherRestaurantResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
-    private TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu;
-    private ImageView viewImage, ratingStar;
-    private Button button;
-    private LinearLayout listView, menuView;
+    TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu;
+    ImageView viewImage, ratingStar;
+    Button button;
+    LinearLayout listView, menuView;
 
-    private String name, address;
-    private double lat, lon;
+    String name, address;
+    double lat, lon;
 
-    private ProgressDialog progressDialog;
-    private Restaurant restaurant;
-    private List<Restaurant> restaurants;
+    ProgressDialog progressDialog;
+    ReviewListAdapter reviewListAdapter;
+    Restaurant restaurant;
+    List<Restaurant> restaurants;
 
-    private View root;
-    private LayoutInflater inflater;
+    View root;
+    LayoutInflater inflater;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -68,17 +67,14 @@ public class RestaurantResultFragment extends Fragment {
 
         Bundle bundle = this.getArguments();
 
-        this.name = bundle.getString("Name");
-        this.address = bundle.getString("Address");
-        this.lat = bundle.getDouble("Latitude");
-        this.lon = bundle.getDouble("Longitude");
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle("Loading Restaurant Data...");
-        progressDialog.setMessage("Please Wait...");
-        progressDialog.show();
-        ZomatoAsync zomatoAsync = new ZomatoAsync();
+        this.restaurant = (Restaurant)bundle.getSerializable("Restaurant");
 
-        zomatoAsync.execute();
+        setupViewElements(root);
+        setupOnClickListener();
+
+        retrieveRestaurantImage();
+        getDailyMenu();
+        retrieveRestaurantReviews(inflater);
 
         return root;
     }
@@ -143,43 +139,6 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
-    private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>> {
-
-        @Override
-        protected List<Restaurant> doInBackground(Void... voids) {
-
-            List<Restaurant> restaurantList;
-
-            ZomatoAccess zomatoAccess = new ZomatoAccess();
-            JSONAdapter jsonAdapter = new JSONAdapter();
-            //GET LOCATION
-            String res = zomatoAccess.findNearbyLocation(lat, lon, address);
-            int city_id = jsonAdapter.getLocationId(res);
-            //GET RESTAURANT LIST
-            String resList = zomatoAccess.findMatchingRestaurants(name, city_id, lat, lon);
-            restaurantList = jsonAdapter.getRestaurantList(resList);
-
-            return restaurantList;
-        }
-
-        @Override
-        protected void onPostExecute(List<Restaurant> newRestaurants) {
-
-            restaurant = newRestaurants.get(0);
-            restaurants = newRestaurants;
-
-            setupViewElements(root);
-            setupOnClickListener();
-
-            retrieveRestaurantImage();
-            getDailyMenu();
-            retrieveRestaurantReviews(inflater);
-
-            progressDialog.dismiss();
-        }
-
-    }
-
     private void setupViewElements(View root) {
 
         viewName = root.findViewById(R.id.restaurantName);
@@ -189,8 +148,8 @@ public class RestaurantResultFragment extends Fragment {
         ratingStar = root.findViewById(R.id.ratingStar);
         gMapText = root.findViewById(R.id.googleMapText);
         allReview = root.findViewById(R.id.allreviews);
-        menuView = root.findViewById(R.id.dailylistView);
         listView = root.findViewById(R.id.reviewlistView);
+        menuView = root.findViewById(R.id.dailylistView);
         normalMenu = root.findViewById(R.id.normalmenuText);
         button = root.findViewById(R.id.button);
 
@@ -201,7 +160,7 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
-    private void setupOnClickListener(){
+    public void setupOnClickListener(){
 
         normalMenu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -245,23 +204,7 @@ public class RestaurantResultFragment extends Fragment {
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fm.beginTransaction();
-                Bundle bundle = new Bundle();
-
-                int sizeCount = 0;
-                while (sizeCount<restaurants.size()) {
-                    bundle.putSerializable("Restaurant"+sizeCount, restaurants.get(sizeCount));
-                    sizeCount++;
-                }
-                bundle.putInt("Count",restaurants.size());
-
-                SearchResultFragment fragment = new SearchResultFragment();
-
-                fragment.setArguments(bundle);
-                fragmentTransaction.replace(R.id.fragmentContent, fragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
+                getFragmentManager().popBackStack();
             }
         });
 
@@ -270,7 +213,7 @@ public class RestaurantResultFragment extends Fragment {
     private void getDailyMenu() {
         GetDailyAsync getDailyAsync = new GetDailyAsync();
         List<DailyMenu> menuList=null;
-       try {
+        try {
             menuList = getDailyAsync.execute(restaurant).get();
 
             for (int i=0; i<menuList.size(); i++) {
@@ -307,25 +250,26 @@ public class RestaurantResultFragment extends Fragment {
         }
     }
 
-    private void retrieveRestaurantImage() {
+
+    public void retrieveRestaurantImage() {
         URL url = null;
         try {
             url = new URL(restaurant.getImage());
-            GetImageAsync getImageAsync = new GetImageAsync();
-            try {
-                viewImage.setImageBitmap(getImageAsync.execute(url).get());
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
+        GetImageAsync getImageAsync = new GetImageAsync();
+        try {
+            viewImage.setImageBitmap(getImageAsync.execute(url).get());
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void retrieveRestaurantReviews(LayoutInflater inflater) {
+    public void retrieveRestaurantReviews(LayoutInflater inflater) {
         GetReviewAsync getReviewAsync = new GetReviewAsync();
         List<Review> reviewList;
         try {
@@ -354,4 +298,5 @@ public class RestaurantResultFragment extends Fragment {
             e.printStackTrace();
         }
     }
+
 }
