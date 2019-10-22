@@ -10,6 +10,8 @@ public class Restaurant {
     double longitude;
     Bitmap photo;
 
+    public Restaurant() { }
+
     public Restaurant(String documentId, String id, String name, double latitude, double longitude, Bitmap photo) {
         this.documentId = documentId;
         this.id = id;

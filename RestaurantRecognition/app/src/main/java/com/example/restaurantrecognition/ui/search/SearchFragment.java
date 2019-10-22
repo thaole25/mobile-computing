@@ -1,11 +1,15 @@
 package com.example.restaurantrecognition.ui.search;
 
+import android.content.Context;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Matrix;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,6 +44,9 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
 
+import com.example.restaurantrecognition.firestore.GPSLocation;
+import com.example.restaurantrecognition.firestore.Prediction;
+
 import com.example.restaurantrecognition.firestore.Restaurant;
 import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
 import com.example.restaurantrecognition.firestore.Prediction;
@@ -73,26 +80,33 @@ import id.zelory.compressor.Compressor;
 import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 
 import static android.app.Activity.RESULT_OK;
-import com.example.restaurantrecognition.ui.FragmentInteractionListener;
-import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
-import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 
-public class SearchFragment extends Fragment {
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+
+public class SearchFragment extends Fragment implements LocationListener {
+    public LocationManager locationManager;
+    Location location;
 
     private final int REQUEST_CODE_PERMISSIONS = 101;
-    private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
+    private final String[] REQUIRED_PERMISSIONS = new String[]{
+            "android.permission.CAMERA",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.ACCESS_FINE_LOCATION",
+            "android.permission.ACCESS_COARSE_LOCATION"};
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 11;
 
-//    private TextView txtResult;
+    //    private TextView txtResult;
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
+    private GPSLocation gpsLocation = new GPSLocation();
+
     private final int REQUEST_CODE_GET_IMAGE = 25;
 
     private FirebaseModelOutputs output;
     private DatabaseManagement dbManagement = new DatabaseManagement();
 
-    private String finalOuput = "Cannot predict";
+    private String errorPredictionMessage = "Cannot predict";
 
 //    @BindView(R.id.btnSearchImage)
 //    Button buttonSearchImage;
@@ -105,7 +119,7 @@ public class SearchFragment extends Fragment {
 
     private FragmentInteractionListener mListener;
     @BindView(R.id.btnChooseFromFolder)
-    Button btnSelectFromFolder;
+    ImageButton btnSelectFromFolder;
 
     @BindView(R.id.text_prediction)
     TextView txtResult;
@@ -113,21 +127,47 @@ public class SearchFragment extends Fragment {
     private SearchViewModel searchViewModel;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        //mListener = (FragmentInteractionListener)getActivity();
+
+        mListener = (FragmentInteractionListener) getActivity();
         searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
         View searchView = inflater.inflate(R.layout.fragment_search, container, false);
         ButterKnife.bind(this, searchView);
 
-        if(allPermissionsGranted()){
+
+        if (allPermissionsGranted()) {
+            startGPS();
             startCamera(); //start camera if permission has been granted by user
-        } else{
+        } else {
             ActivityCompat.requestPermissions(getActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS);
         }
 
         return searchView;
+    }
+
+    private void startGPS(){
+        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        String provider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
+        if (provider == null) {
+            Log.e("Error", "No location provider found!");
+        }
+        location = locationManager.getLastKnownLocation(provider);
+        if(location!=null)
+        {
+            double lng=location.getLongitude();
+            double lat=location.getLatitude();
+            Log.d("latitude", String.valueOf(lat));
+            Log.d("Longitude", String.valueOf(lng));
+        }
+        else{
+            locationManager.requestLocationUpdates(provider, 1000, 0, this);
+        }
     }
 
     private void startCamera() {
@@ -214,9 +254,9 @@ public class SearchFragment extends Fragment {
         float cY = h / 2f;
 
         int rotationDgr;
-        int rotation = (int)textureView.getRotation();
+        int rotation = (int) textureView.getRotation();
 
-        switch(rotation){
+        switch (rotation) {
             case Surface.ROTATION_0:
                 rotationDgr = 0;
                 break;
@@ -233,27 +273,27 @@ public class SearchFragment extends Fragment {
                 return;
         }
 
-        mx.postRotate((float)rotationDgr, cX, cY);
+        mx.postRotate((float) rotationDgr, cX, cY);
         textureView.setTransform(mx);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
-        if(requestCode == REQUEST_CODE_PERMISSIONS){
-            if(allPermissionsGranted()){
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (allPermissionsGranted()) {
                 startCamera();
-            } else{
+            } else {
                 Toast.makeText(getContext(), "Permissions not granted by the user.", Toast.LENGTH_SHORT).show();
                 getActivity().finish();
             }
         }
     }
 
-    private boolean allPermissionsGranted(){
+    private boolean allPermissionsGranted() {
 
-        for(String permission : REQUIRED_PERMISSIONS){
-            if(ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED){
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(getContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }
@@ -288,8 +328,7 @@ public class SearchFragment extends Fragment {
                 Bitmap imageBitmap = null;
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
-                    CharSequence prediction = sendImagetoFirebase(imageBitmap);
-                    txtResult.setText(prediction);
+                    sendImagetoFirebase(imageBitmap);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -297,7 +336,7 @@ public class SearchFragment extends Fragment {
         }
     }
 
-    public String sendImagetoFirebase(Bitmap image) {
+    public void sendImagetoFirebase(Bitmap image) {
         Log.d("7.1 Status: ", "send image to firebase");
 
         FirebaseCustomLocalModel localModel;
@@ -319,7 +358,7 @@ public class SearchFragment extends Fragment {
             float[][][][] input = aiModel.imagePreProcessing(image);
 
             FirebaseModelInputs inputs = new FirebaseModelInputs.Builder().add(input).build();
-            interpreter.run(inputs,inputOutputOptions).addOnSuccessListener(
+            interpreter.run(inputs, inputOutputOptions).addOnSuccessListener(
                     new OnSuccessListener<FirebaseModelOutputs>() {
                         @Override
                         public void onSuccess(FirebaseModelOutputs result) {
@@ -335,11 +374,40 @@ public class SearchFragment extends Fragment {
                                 @Override
                                 public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
                                     Prediction prediction = aiModel.retrievePredictions(restaurantArrayList, bestId, probabilities[bestId]);
-                                    if (prediction != null){
-                                        finalOuput = String.format("Id: %s, Name: %s, Prob: %1.4f", prediction.getRestaurant().getId(), prediction.getRestaurant().getName(), prediction.getPrediction());
-                                        Log.d("7.2 Status: ", finalOuput);
-                                        txtResult.setText(finalOuput);
+                                    if (prediction != null) {
+                                        String bestPredictionResult = String.format("Id: %s, Name: %s, Prob: %1.4f",
+                                                prediction.getRestaurant().getId(),
+                                                prediction.getRestaurant().getName(),
+                                                prediction.getPrediction());
+                                        Log.d("Best prediction by ML ", bestPredictionResult);
+                                    }
+                                    Prediction closeRestaurant = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
+                                    if (closeRestaurant != null){
+                                        String closeRestaurantResult = String.format("Id: %s, Name: %s, Distance: %1.4f",
+                                                closeRestaurant.getRestaurant().getId(),
+                                                closeRestaurant.getRestaurant().getName(),
+                                                closeRestaurant.getDistance());
+                                        Log.d("Close restaurant by GPS", closeRestaurantResult);
+                                    }
 
+                                    if (closeRestaurant == null && prediction == null)
+                                        txtResult.setText(errorPredictionMessage);
+                                    else{
+                                        if (prediction.getRestaurant().getId() == closeRestaurant.getRestaurant().getId())
+                                            txtResult.setText("Restaurant: " + prediction.getRestaurant().getName() +
+                                                    " Id: " + prediction.getRestaurant().getId() +
+                                                    " Probability: " + prediction.getPrediction() +
+                                                    " Distance: " + closeRestaurant.getDistance()
+                                            );
+                                        else
+                                            txtResult.setText("There are two restaurants: \n" +
+                                                    " Id: " + closeRestaurant.getRestaurant().getId() +
+                                                    " Restaurant 1: " + closeRestaurant.getRestaurant().getName() +
+                                                    " Probability: " + closeRestaurant.getPrediction() + "\n" +
+                                                    " Id: " + prediction.getRestaurant().getId() +
+                                                    "Restaurant 2: " + prediction.getRestaurant().getName() +
+                                                    " Probability: " + prediction.getPrediction()
+                                            );
                                     }
                                 }
                             });
@@ -354,7 +422,35 @@ public class SearchFragment extends Fragment {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
-        return finalOuput;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        location.setLatitude(location.getLatitude());
+        location.setLongitude(location.getLongitude());
+        Log.d("Latitude change", String.valueOf(location.getLatitude()));
+        Log.d("Longitude change", String.valueOf(location.getLongitude()));
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
     }
 
 }
