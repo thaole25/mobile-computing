@@ -9,10 +9,6 @@
             android:icon="@drawable/ic_menu_search"
             android:title="@string/menu_search" />
         <item
-            android:id="@+id/nav_find_from_folder"
-            android:icon="@drawable/ic_menu_search"
-            android:title="Search From Folder" />
-        <item
             android:id="@+id/nav_recent_matches"
             android:icon="@drawable/ic_menu_recent_matches"
             android:title="@string/menu_recent_matches" />

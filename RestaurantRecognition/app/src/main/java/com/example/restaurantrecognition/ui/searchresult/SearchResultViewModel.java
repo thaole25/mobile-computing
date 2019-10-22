@@ -1,15 +1,15 @@
-package com.example.restaurantrecognition.ui.search;
+package com.example.restaurantrecognition.ui.searchresult;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class SearchFromFolderModel extends ViewModel {
+public class SearchResultViewModel extends ViewModel {
     private MutableLiveData<String> mText;
 
-    public SearchFromFolderModel() {
+    public SearchResultViewModel() {
         mText = new MutableLiveData<>();
-        mText.setValue("This is Search fragment");
+        mText.setValue("This is Search Result fragment");
     }
 
     public LiveData<String> getText() {

@@ -2,10 +2,12 @@ package com.example.restaurantrecognition;
 
 import android.os.Bundle;
 
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
 import com.example.restaurantrecognition.ui.exit.ExitFragment;
 import com.example.restaurantrecognition.ui.help.HelpFragment;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
 import com.example.restaurantrecognition.ui.search.SearchFragment;
+import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 import com.example.restaurantrecognition.ui.settings.SettingsFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -32,10 +34,11 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.widget.Toast;
 
-public class SideMenuActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class SideMenuActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FragmentInteractionListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,10 +96,10 @@ public class SideMenuActivity extends AppCompatActivity implements NavigationVie
     }
 
     @Override
-    public void onBackPressed(){
-        if (drawer.isDrawerOpen(GravityCompat.START)){
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else{
+        } else {
             super.onBackPressed();
         }
     }
@@ -104,7 +107,7 @@ public class SideMenuActivity extends AppCompatActivity implements NavigationVie
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu. side_menu, menu);
+        getMenuInflater().inflate(R.menu.side_menu, menu);
         return true;
     }
 
@@ -113,5 +116,26 @@ public class SideMenuActivity extends AppCompatActivity implements NavigationVie
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    public void changeFragment(int id) {
+        Fragment fragment = null;
+        Class fragmentClass = null;
+        if (id == 1) {
+            fragmentClass = SearchResultFragment.class;
+        }
+
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragmentContent, fragment).addToBackStack("Fragment A").commit();
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+
+        return;
     }
 }
