@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.location.Criteria;
 import android.location.Location;
@@ -75,6 +76,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+
 import id.zelory.compressor.Compressor;
 
 import static androidx.core.content.ContextCompat.getExternalFilesDirs;
@@ -148,7 +150,7 @@ public class SearchFragment extends Fragment implements LocationListener {
         return searchView;
     }
 
-    private void startGPS(){
+    private void startGPS() {
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -158,14 +160,12 @@ public class SearchFragment extends Fragment implements LocationListener {
             Log.e("Error", "No location provider found!");
         }
         location = locationManager.getLastKnownLocation(provider);
-        if(location!=null)
-        {
-            double lng=location.getLongitude();
-            double lat=location.getLatitude();
+        if (location != null) {
+            double lng = location.getLongitude();
+            double lat = location.getLatitude();
             Log.d("latitude", String.valueOf(lat));
             Log.d("Longitude", String.valueOf(lng));
-        }
-        else{
+        } else {
             locationManager.requestLocationUpdates(provider, 1000, 0, this);
         }
     }
@@ -194,45 +194,48 @@ public class SearchFragment extends Fragment implements LocationListener {
         final ImageCapture imgCap = new ImageCapture(imageCaptureConfig);
 
         imgBtn.setOnClickListener(v -> {
-           File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
-           imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
-               @Override
-               public void onImageSaved(@NonNull File file) {
-                   Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                   FirebaseStorage storage = FirebaseStorage.getInstance();
-                   StorageReference storageRef = storage.getReference().child("uploads");
-                   StorageMetadata metadata = new StorageMetadata.Builder()
-                           .setContentType("image/jpg")
-                           .build();
-                   File compressedFile = null;
-                   try {
-                       compressedFile = new Compressor(getContext()).compressToFile(file);
-                   } catch (IOException e) {
-                       e.printStackTrace();
-                   }
-                   Uri filePath = null;
-                   if (compressedFile == null)
-                       filePath = Uri.fromFile(file);
-                   else
-                       filePath = Uri.fromFile(compressedFile);
-                   StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
-                   UploadTask uploadTask = imageRef.putFile(filePath, metadata);
-                   uploadTask.addOnFailureListener(e -> {
-                       Toast.makeText(getContext(), "Failed to upload to cloud.", Toast.LENGTH_SHORT).show();
-                       Log.d(getTag(), e.toString());
-                   }).addOnSuccessListener(taskSnapshot -> {
-                       Toast.makeText(getContext(), "Photo uploaded to cloud!" ,Toast.LENGTH_SHORT).show();
-                       openResultFragment();
-                   });
+            File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
+            imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
+                @Override
+                public void onImageSaved(@NonNull File file) {
+                    Toast.makeText(getContext(), "Photo saved to " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                    FirebaseStorage storage = FirebaseStorage.getInstance();
+                    StorageReference storageRef = storage.getReference().child("uploads");
+                    StorageMetadata metadata = new StorageMetadata.Builder()
+                            .setContentType("image/jpg")
+                            .build();
+                    File compressedFile = null;
+                    try {
+                        compressedFile = new Compressor(getContext()).compressToFile(file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Uri filePath = null;
+                    if (compressedFile == null)
+                        filePath = Uri.fromFile(file);
+                    else
+                        filePath = Uri.fromFile(compressedFile);
+                    StorageReference imageRef = storageRef.child(filePath.getLastPathSegment());
+                    UploadTask uploadTask = imageRef.putFile(filePath, metadata);
+                    uploadTask.addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Failed to upload to cloud.", Toast.LENGTH_SHORT).show();
+                        Log.d(getTag(), e.toString());
+                    }).addOnSuccessListener(taskSnapshot -> {
+                        Toast.makeText(getContext(), "Photo uploaded to cloud!", Toast.LENGTH_SHORT).show();
+                        Bitmap imageBitmap = BitmapFactory.decodeFile(file.getPath());
+                        sendImagetoFirebase(imageBitmap);
+//                        openResultFragment();
+                    });
 
-               }
-               @Override
-               public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                   Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_SHORT).show();
-               }
-           });
+                }
 
-       });
+                @Override
+                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
+                    Toast.makeText(getContext(), "Failed to save photo", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        });
 
         btnSelectFromFolder.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
@@ -382,7 +385,7 @@ public class SearchFragment extends Fragment implements LocationListener {
                                         Log.d("Best prediction by ML ", bestPredictionResult);
                                     }
                                     Prediction closeRestaurant = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
-                                    if (closeRestaurant != null){
+                                    if (closeRestaurant != null) {
                                         String closeRestaurantResult = String.format("Id: %s, Name: %s, Distance: %1.4f",
                                                 closeRestaurant.getRestaurant().getId(),
                                                 closeRestaurant.getRestaurant().getName(),
@@ -392,7 +395,7 @@ public class SearchFragment extends Fragment implements LocationListener {
 
                                     if (closeRestaurant == null && prediction == null)
                                         txtResult.setText(errorPredictionMessage);
-                                    else{
+                                    else {
                                         if (prediction.getRestaurant().getId() == closeRestaurant.getRestaurant().getId())
                                             txtResult.setText("Restaurant: " + prediction.getRestaurant().getName() +
                                                     " Id: " + prediction.getRestaurant().getId() +
