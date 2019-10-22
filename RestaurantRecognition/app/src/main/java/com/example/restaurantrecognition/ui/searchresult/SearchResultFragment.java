@@ -17,6 +17,7 @@ import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
 import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.restaurantresult.OtherRestaurantResultFragment;
 import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
 import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
 
@@ -33,17 +34,13 @@ import androidx.lifecycle.ViewModelProviders;
 public class SearchResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
-    double lat = -37.7;
-    double lon = 144.9;
-    String resName = "Pronto Pizza";
-    String resAddress = "Parkville, University of Melbourne, Grattan Street";
 
     ListView listView;
     RestaurantListAdapter listViewAdapter;
 
-    ProgressDialog progressDialog;
+ //   ProgressDialog progressDialog;
 
-    private FragmentInteractionListener mListener;
+ //   private FragmentInteractionListener mListener;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -53,17 +50,50 @@ public class SearchResultFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_search_result, container, false);
 
         listView = root.findViewById(R.id.simpleListView);
-        progressDialog = new ProgressDialog(getActivity());
+        Bundle bundle = this.getArguments();
+        int resCount = bundle.getInt("Count");
+        List<Restaurant> restaurants = new ArrayList<>();
+
+        for (int i=0; i<resCount; i++) {
+            restaurants.add((Restaurant)bundle.getSerializable("Restaurant"+i));
+        }
+
+        listViewAdapter = new RestaurantListAdapter(
+                getActivity(),R.layout.items_layout,restaurants
+        );
+        listView.setAdapter(listViewAdapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                Bundle bundle = new Bundle();
+
+                Restaurant restaurantObject = restaurants.get(position);
+                bundle.putSerializable("Restaurant", restaurantObject);
+
+
+                OtherRestaurantResultFragment fragment = new OtherRestaurantResultFragment();
+
+                fragment.setArguments(bundle);
+                fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }});
+
+        /*progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Loading Restaurant Data...");
         progressDialog.setMessage("Please Wait...");
-        progressDialog.show();
+        progressDialog.show();*/
 
-        getRestaurantList();
+       // getRestaurantList();
 
         return root;
     }
 
-    private void getRestaurantList() {
+   /* private void getRestaurantList() {
 
         ZomatoAsync zomatoAsync = new ZomatoAsync();
         zomatoAsync.execute();
@@ -71,8 +101,9 @@ public class SearchResultFragment extends Fragment {
         return;
 
     }
+    */
 
-    private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>>{
+   /* private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>>{
 
         @Override
         protected List<Restaurant> doInBackground(Void... voids) {
@@ -94,10 +125,10 @@ public class SearchResultFragment extends Fragment {
 
             return restaurantList;
         }
+    */
 
-        @Override
+    /*    @Override
         protected void onPostExecute(List<Restaurant> restaurants) {
-            progressDialog.dismiss();
             listView.setAdapter(listViewAdapter);
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -119,8 +150,10 @@ public class SearchResultFragment extends Fragment {
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }});
+
+            progressDialog.dismiss();
         }
 
-    }
+    }*/
 
 }

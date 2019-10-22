@@ -10,15 +10,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -27,14 +24,11 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
-import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
 import com.example.restaurantrecognition.ui.adapter.Review;
 import com.example.restaurantrecognition.ui.adapter.ReviewListAdapter;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultViewModel;
 import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
-
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -42,9 +36,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.zip.Inflater;
 
-public class RestaurantResultFragment extends Fragment {
+public class OtherRestaurantResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
     TextView viewName, viewAddress, viewRating, gMapText, allReview;
@@ -72,17 +65,13 @@ public class RestaurantResultFragment extends Fragment {
 
         Bundle bundle = this.getArguments();
 
-        this.name = bundle.getString("Name");
-        this.address = bundle.getString("Address");
-        this.lat = bundle.getDouble("Latitude");
-        this.lon = bundle.getDouble("Longitude");
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setTitle("Loading Restaurant Data...");
-        progressDialog.setMessage("Please Wait...");
-        progressDialog.show();
-        ZomatoAsync zomatoAsync = new ZomatoAsync();
+        this.restaurant = (Restaurant)bundle.getSerializable("Restaurant");
 
-        zomatoAsync.execute();
+        setupViewElements(root);
+        setupOnClickListener();
+
+        retrieveRestaurantImage();
+        retrieveRestaurantReviews(inflater);
 
         return root;
     }
@@ -126,41 +115,6 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
-    private class ZomatoAsync extends AsyncTask<Void, Void, List<Restaurant>> {
-
-        @Override
-        protected List<Restaurant> doInBackground(Void... voids) {
-
-            List<Restaurant> restaurantList;
-
-            ZomatoAccess zomatoAccess = new ZomatoAccess();
-            JSONAdapter jsonAdapter = new JSONAdapter();
-            //GET LOCATION
-            String res = zomatoAccess.findNearbyLocation(lat, lon, address);
-            int city_id = jsonAdapter.getLocationId(res);
-            //GET RESTAURANT LIST
-            String resList = zomatoAccess.findMatchingRestaurants(name, city_id, lat, lon);
-            restaurantList = jsonAdapter.getRestaurantList(resList);
-
-            return restaurantList;
-        }
-
-        @Override
-        protected void onPostExecute(List<Restaurant> newRestaurants) {
-
-            restaurant = newRestaurants.get(0);
-            restaurants = newRestaurants;
-
-            setupViewElements(root);
-            setupOnClickListener();
-
-            retrieveRestaurantImage();
-            retrieveRestaurantReviews(inflater);
-
-            progressDialog.dismiss();
-        }
-
-    }
 
     private void setupViewElements(View root) {
 
@@ -234,23 +188,7 @@ public class RestaurantResultFragment extends Fragment {
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                FragmentTransaction fragmentTransaction = fm.beginTransaction();
-                Bundle bundle = new Bundle();
-
-                int sizeCount = 0;
-                while (sizeCount<restaurants.size()) {
-                    bundle.putSerializable("Restaurant"+sizeCount, restaurants.get(sizeCount));
-                    sizeCount++;
-                }
-                bundle.putInt("Count",restaurants.size());
-
-                SearchResultFragment fragment = new SearchResultFragment();
-
-                fragment.setArguments(bundle);
-                fragmentTransaction.replace(R.id.fragmentContent, fragment);
-                fragmentTransaction.addToBackStack(null);
-                fragmentTransaction.commit();
+                getFragmentManager().popBackStack();
             }
         });
 
@@ -303,4 +241,5 @@ public class RestaurantResultFragment extends Fragment {
             e.printStackTrace();
         }
     }
+
 }

@@ -3,6 +3,7 @@ package com.example.restaurantrecognition.ui.search;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,10 +31,14 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
+import com.example.restaurantrecognition.firestore.Restaurant;
+import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -65,14 +70,14 @@ public class SearchFragment extends Fragment {
     @BindView(R.id.imgCapture)
     ImageButton imgBtn;
 
-    private FragmentInteractionListener mListener;
+    //private FragmentInteractionListener mListener;
     private SearchViewModel searchViewModel;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        mListener = (FragmentInteractionListener)getActivity();
+        //mListener = (FragmentInteractionListener)getActivity();
         searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
         View searchView = inflater.inflate(R.layout.fragment_search, container, false);
         ButterKnife.bind(this, searchView);
@@ -138,8 +143,9 @@ public class SearchFragment extends Fragment {
                        Log.d(getTag(), e.toString());
                    }).addOnSuccessListener(taskSnapshot -> {
                        Toast.makeText(getContext(), "Photo uploaded to cloud!" ,Toast.LENGTH_SHORT).show();
+                       openResultFragment();
                    });
-                  // mListener.changeFragment(1);
+
                }
                @Override
                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
@@ -207,6 +213,25 @@ public class SearchFragment extends Fragment {
             }
         }
         return true;
+    }
+
+    private void openResultFragment() {
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+        Bundle bundle = new Bundle();
+
+        /*Mocking Data*/
+        bundle.putString("Name", "Pronto Pizza");
+        bundle.putDouble("Latitude", -37.7);
+        bundle.putDouble("Longitude", 144.9);
+        bundle.putString("Address", "Parkville, University of Melbourne, Grattan Street");
+
+        RestaurantResultFragment fragment = new RestaurantResultFragment();
+
+        fragment.setArguments(bundle);
+        fragmentTransaction.replace(R.id.fragmentContent, fragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
 }

@@ -56,14 +56,6 @@
                 android:textSize="16dp"
                 android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/imageView2"
-                android:layout_width="match_parent"
-                android:layout_height="143dp"
-                android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
-                tools:srcCompat="@tools:sample/backgrounds/scenic" />
-
             <!--View
                 android:id="@+id/straightLine"
                 android:layout_width="match_parent"
@@ -71,6 +63,14 @@
                 android:background="#F2F6F9"
                 android:layout_marginTop="10dp"
                 android:layout_below="@id/ratingText" /-->
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="match_parent"
+                android:layout_height="143dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
             <TextView
                 android:id="@+id/restaurantName"
@@ -118,12 +118,12 @@
                 android:id="@+id/addressText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/restaurantName"
+                android:layout_below="@+id/button"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
-                android:layout_marginStart="17dp"
-                android:layout_marginLeft="17dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginStart="19dp"
+                android:layout_marginLeft="19dp"
+                android:layout_marginTop="15dp"
                 android:fontFamily="sans-serif-condensed-light"
                 android:text="Address"
                 android:textColor="@color/common_google_signin_btn_text_dark_focused"
@@ -134,10 +134,10 @@
                 android:id="@+id/googleMapText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/restaurantName"
+                android:layout_below="@+id/button"
                 android:layout_alignParentRight="true"
-                android:layout_marginTop="33dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginRight="11dp"
                 android:text="Open in GoogleMaps >>" />
 
             <TextView
@@ -223,6 +223,17 @@
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-condensed-light"
                 android:text="Normal Menu" />
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="175dp"
+                android:layout_height="38dp"
+                android:layout_below="@+id/restaurantName"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="19dp"
+                android:layout_marginTop="9dp"
+                android:background="@drawable/button_template"
+                android:text="not the right restaurant?" />
 
         </RelativeLayout>
     </ScrollView>
