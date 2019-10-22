@@ -93,7 +93,7 @@ public class SearchFragment extends Fragment implements LocationListener {
             "android.permission.ACCESS_COARSE_LOCATION"};
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
-    private final int IMG_CLASSES = 11;
+    private final int IMG_CLASSES = 15;
 
 //    private TextView txtResult;
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
@@ -120,7 +120,7 @@ public class SearchFragment extends Fragment implements LocationListener {
 
     private SearchViewModel searchViewModel;
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+//    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -338,7 +338,8 @@ public class SearchFragment extends Fragment implements LocationListener {
         FirebaseModelInputOutputOptions inputOutputOptions;
 
 //        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
-        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v2.tflite").build();
+//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v2.tflite").build();
+        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v3-15.tflite").build();
 
         FirebaseModelInterpreter interpreter;
         try {

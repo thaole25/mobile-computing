@@ -17,6 +17,7 @@ import java.util.Arrays;
 public class AnalyseImageOnFirebase extends FragmentActivity {
     private final int IMG_SIZE = 224;
     private final int IMG_CHANNEL = 3;
+    private final double PROBABILITY_THRESHOLD = 0.6;
 
     public float[][][][] imagePreProcessing(Bitmap image) {
         Bitmap bitmap = Bitmap.createScaledBitmap(image, IMG_SIZE, IMG_SIZE, false);
@@ -42,7 +43,7 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
         int end = copyProbabititiles.length - topNumber;
         for (int i = start; i >= end; i--) {
             for (int j = 0; j < probabilities.length; j++) {
-                if (probabilities[j] >= 0.4 && probabilities[j] == copyProbabititiles[i]) {
+                if (probabilities[j] > PROBABILITY_THRESHOLD && probabilities[j] == copyProbabititiles[i]) {
                     restaurantIndices.add(j);
                     break;
                 }
