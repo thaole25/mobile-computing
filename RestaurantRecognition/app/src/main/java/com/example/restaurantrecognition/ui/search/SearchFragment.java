@@ -274,8 +274,8 @@ public class SearchFragment extends Fragment {
         FirebaseModelInterpreterOptions options;
         FirebaseModelInputOutputOptions inputOutputOptions;
 
-        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
-//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("model.tflite").build();
+//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
+        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v2.tflite").build();
 
         FirebaseModelInterpreter interpreter;
         try {
