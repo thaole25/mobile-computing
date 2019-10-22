@@ -44,7 +44,8 @@ import java.util.concurrent.ExecutionException;
 public class RestaurantResultFragment extends Fragment {
 
     private SearchResultViewModel searchResultViewModel;
-    private TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu;
+    private TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu,
+            currency, price;
     private ImageView viewImage, ratingStar;
     private Button button;
     private LinearLayout listView, menuView;
@@ -192,11 +193,15 @@ public class RestaurantResultFragment extends Fragment {
         menuView = root.findViewById(R.id.dailylistView);
         listView = root.findViewById(R.id.reviewlistView);
         normalMenu = root.findViewById(R.id.normalmenuText);
+        currency = root.findViewById(R.id.currency);
+        price = root.findViewById(R.id.priceContent);
         button = root.findViewById(R.id.button);
 
         viewName.setText(restaurant.getName());
         viewAddress.setText(restaurant.getAddress());
         viewRating.setText(restaurant.getRating());
+        currency.setText(restaurant.getCurrency());
+        price.setText(restaurant.getPriceForTwo());
         ratingStar.setImageResource(R.drawable.staricon);
 
     }

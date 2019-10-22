@@ -10,10 +10,11 @@ public class Restaurant implements Serializable {
     String menuURL;
     double lat;
     double lon;
-    
+    String priceForTwo;
+    String currency;
 
     public Restaurant(String id, String image, String name, String address, String rating,
-                      String menuURL, double lat, double lon) {
+                      String menuURL, double lat, double lon, String priceForTwo, String currency) {
         this.id = id;
         this.image = image;
         this.name = name;
@@ -22,6 +23,8 @@ public class Restaurant implements Serializable {
         this.menuURL = menuURL;
         this.lat = lat;
         this.lon = lon;
+        this.priceForTwo = priceForTwo;
+        this.currency = currency;
     }
 
     public String getId() { return id;}
@@ -48,4 +51,7 @@ public class Restaurant implements Serializable {
 
     public double getLon() { return lon; }
 
+    public String getPriceForTwo() { return priceForTwo; }
+
+    public String getCurrency() { return currency; }
 }
