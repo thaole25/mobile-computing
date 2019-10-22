@@ -11,11 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.restaurantrecognition.R;
-import com.example.restaurantrecognition.database.AppDatabase;
-import com.example.restaurantrecognition.database.RecentMatch;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RecentMatchesFragment extends Fragment {
 
@@ -44,13 +41,7 @@ public class RecentMatchesFragment extends Fragment {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            AppDatabase appDatabase = AppDatabase.getInstance(context);
-            List<RecentMatch> recentMatches = appDatabase.recentMatchDao().getAll();
-            List<RecentMatchItem> recentMatchItems = new ArrayList<>();
-            for (RecentMatch match : recentMatches) {
-                recentMatchItems.add(new RecentMatchItem(match.id, match.restaurantName, match.zomatoId));
-            }
-            recyclerView.setAdapter(new RecentMatchesRecyclerViewAdapter(recentMatchItems, mListener));
+            recyclerView.setAdapter(new RecentMatchesRecyclerViewAdapter(new ArrayList<>(), mListener));
         }
         return view;
     }
