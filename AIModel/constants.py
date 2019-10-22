@@ -17,10 +17,10 @@ Y_TEST_FILE = "../data/test/y_test.npy"
 
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-MAX_IMAGES = 400
+MAX_IMAGES = 800
 BATCH_SIZE_TRAIN = 16
 BATCH_SIZE_TEST = 2
-EPOCHS = 20
+EPOCHS = 16
 
 def getTotalNumberofImages():
   total = 0
