@@ -18,8 +18,8 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.restaurantrecognition.ui.exit.ExitFragment;
 import com.example.restaurantrecognition.ui.help.HelpFragment;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchItem;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
-import com.example.restaurantrecognition.ui.recentmatches.dummy.DummyContent;
 import com.example.restaurantrecognition.ui.search.SearchFragment;
 import com.example.restaurantrecognition.ui.settings.SettingsFragment;
 import com.google.android.material.navigation.NavigationView;
@@ -109,7 +109,7 @@ public class SideMenuActivity extends AppCompatActivity
     }
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+    public void onListFragmentInteraction(RecentMatchItem item) {
         Log.d(getCallingPackage(), "selected: "+item.id);
     }
 }
