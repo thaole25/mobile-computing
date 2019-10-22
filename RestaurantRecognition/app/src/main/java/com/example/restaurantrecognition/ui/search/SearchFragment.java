@@ -3,10 +3,12 @@ package com.example.restaurantrecognition.ui.search;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
@@ -15,7 +17,9 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,6 +36,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.firestore.DatabaseManagement;
+import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -44,6 +49,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import id.zelory.compressor.Compressor;
 
+import static android.app.Activity.RESULT_OK;
 import static androidx.core.content.ContextCompat.getExternalFilesDirs;
 
 
@@ -51,6 +57,10 @@ public class SearchFragment extends Fragment {
 
     private final int REQUEST_CODE_PERMISSIONS = 101;
     private final String[] REQUIRED_PERMISSIONS = new String[]{"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
+
+//    private TextView txtResult;
+    private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
+    private final int REQUEST_CODE_GET_IMAGE = 25;
 
 //    @BindView(R.id.btnSearchImage)
 //    Button buttonSearchImage;
@@ -60,6 +70,12 @@ public class SearchFragment extends Fragment {
 
     @BindView(R.id.imgCapture)
     ImageButton imgBtn;
+
+    @BindView(R.id.btnChooseFromFolder)
+    Button btnSelectFromFolder;
+
+    @BindView(R.id.text_prediction)
+    TextView txtResult;
 
     private SearchViewModel searchViewModel;
 
@@ -102,7 +118,7 @@ public class SearchFragment extends Fragment {
                 .setTargetRotation(getActivity().getWindowManager().getDefaultDisplay().getRotation()).build();
         final ImageCapture imgCap = new ImageCapture(imageCaptureConfig);
 
-       imgBtn.setOnClickListener(v -> {
+        imgBtn.setOnClickListener(v -> {
            File file = new File(Environment.getExternalStorageDirectory() + "/" + System.currentTimeMillis() + ".jpg");
            imgCap.takePicture(file, new ImageCapture.OnImageSavedListener() {
                @Override
@@ -139,6 +155,13 @@ public class SearchFragment extends Fragment {
                }
            });
        });
+
+        btnSelectFromFolder.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_OPEN_DOCUMENT
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_CODE_GET_IMAGE);
+        });
 
         //bind to lifecycle:
         CameraX.bindToLifecycle(this, preview, imgCap);
@@ -199,4 +222,21 @@ public class SearchFragment extends Fragment {
         return true;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_GET_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                Uri imageUri = data.getData();
+                Bitmap imageBitmap = null;
+                try {
+                    imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
+                    CharSequence prediction = aiModel.sendImagetoFirebase(imageBitmap);
+                    txtResult.setText(prediction);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }
