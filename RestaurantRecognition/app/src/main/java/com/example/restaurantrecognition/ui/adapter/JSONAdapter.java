@@ -48,7 +48,9 @@ public class JSONAdapter {
                         ratingObject.getString("aggregate_rating"),
                         restaurantObjectVal.getString("menu_url"),
                         locationObject.getDouble("latitude"),
-                        locationObject.getDouble("longitude")));
+                        locationObject.getDouble("longitude"),
+                        restaurantObjectVal.getString("average_cost_for_two"),
+                        restaurantObjectVal.getString("currency")));
             }
 
         } catch (JSONException e) {
