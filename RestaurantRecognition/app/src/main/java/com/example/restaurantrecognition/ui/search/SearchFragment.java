@@ -1,6 +1,5 @@
 package com.example.restaurantrecognition.ui.search;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
@@ -45,7 +44,10 @@ import butterknife.ButterKnife;
 import id.zelory.compressor.Compressor;
 
 import static androidx.core.content.ContextCompat.getExternalFilesDirs;
-
+import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 
 public class SearchFragment extends Fragment {
 
@@ -61,11 +63,14 @@ public class SearchFragment extends Fragment {
     @BindView(R.id.imgCapture)
     ImageButton imgBtn;
 
+    private FragmentInteractionListener mListener;
     private SearchViewModel searchViewModel;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
+        mListener = (FragmentInteractionListener)getActivity();
         searchViewModel = ViewModelProviders.of(this).get(SearchViewModel.class);
         View searchView = inflater.inflate(R.layout.fragment_search, container, false);
         ButterKnife.bind(this, searchView);
