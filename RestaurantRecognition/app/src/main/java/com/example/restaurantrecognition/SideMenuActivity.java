@@ -110,6 +110,7 @@ public class SideMenuActivity extends AppCompatActivity
 
     @Override
     public void onListFragmentInteraction(RecentMatchItem item) {
+        // TODO: redirect to relevant restaurant info
         Log.d(getCallingPackage(), "selected: "+item.id);
     }
 }

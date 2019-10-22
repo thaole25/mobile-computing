@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment.OnListFragmentInteractionListener;
-import com.example.restaurantrecognition.ui.recentmatches.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 
