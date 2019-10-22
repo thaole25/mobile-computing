@@ -31,6 +31,19 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/lastReviews"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/reviews"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="37dp"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-condensed-light"
+                android:text="Last 5 Reviews"
+                android:textSize="16dp"
+                android:textStyle="bold"/>
+
+            <TextView
                 android:id="@+id/allreviews"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -55,14 +68,6 @@
                 android:text="Address Contents"
                 android:textSize="16dp"
                 android:textStyle="bold" />
-
-            <!--View
-                android:id="@+id/straightLine"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="#F2F6F9"
-                android:layout_marginTop="10dp"
-                android:layout_below="@id/ratingText" /-->
 
             <ImageView
                 android:id="@+id/imageView2"
@@ -160,7 +165,7 @@
                 android:id="@+id/reviewlistView"
                 android:layout_width="350dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/reviews"
+                android:layout_below="@+id/lastReviews"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentLeft="true"
                 android:layout_marginLeft="17dp"
