@@ -143,14 +143,13 @@ public class SearchFragment extends Fragment {
                        Log.d(getTag(), e.toString());
                    }).addOnSuccessListener(taskSnapshot -> {
                        Toast.makeText(getContext(), "Photo uploaded to cloud!" ,Toast.LENGTH_SHORT).show();
-
+                       openResultFragment();
                    });
 
                }
                @Override
                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
                    Toast.makeText(getContext(), "Failed to save photo" ,Toast.LENGTH_SHORT).show();
-                   openResultFragment();
                }
            });
 
