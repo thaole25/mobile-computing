@@ -31,6 +31,7 @@ public class DatabaseManagement {
                                 document.get("name").toString(),
                                 document.getGeoPoint("gps").getLatitude(),
                                 document.getGeoPoint("gps").getLongitude(),
+                                document.get("address").toString(),
                                 null);
                         restaurantList.add(restaurant);
                     }

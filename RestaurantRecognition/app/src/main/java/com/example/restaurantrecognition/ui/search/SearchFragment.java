@@ -215,13 +215,7 @@ public class SearchFragment extends Fragment implements LocationListener {
                     }).addOnSuccessListener(taskSnapshot -> {
                         Toast.makeText(getContext(), "Photo uploaded to cloud!", Toast.LENGTH_SHORT).show();
                         Bitmap imageBitmap = BitmapFactory.decodeFile(file.getPath());
-                        finalPrediction = sendImagetoFirebase(imageBitmap);
-                        if (finalPrediction != null){
-                            Log.d("Predicted Restaurant: ", "Restaurant Name: " + finalPrediction.getRestaurant().getName());
-                            openResultFragment(finalPrediction);
-                        }else{
-                            txtResult.setText(errorPredictionMessage);
-                        }
+                        sendImagetoFirebase(imageBitmap);
                     });
 
                 }
@@ -305,16 +299,10 @@ public class SearchFragment extends Fragment implements LocationListener {
         FragmentTransaction fragmentTransaction = fm.beginTransaction();
         Bundle bundle = new Bundle();
 
-        /*Mocking Data*/
-//        bundle.putString("Name", "Pronto Pizza");
-//        bundle.putDouble("Latitude", -37.7);
-//        bundle.putDouble("Longitude", 144.9);
-//        bundle.putString("Address", "Parkville, University of Melbourne, Grattan Street");
-
         bundle.putString("Name", predictedRestaurant.getRestaurant().getName());
-        bundle.putDouble("Latitide", predictedRestaurant.getRestaurant().getLatitude());
+        bundle.putDouble("Latitude", predictedRestaurant.getRestaurant().getLatitude());
         bundle.putDouble("Longitude", predictedRestaurant.getRestaurant().getLongitude());
-        bundle.putString("Address", "Address");
+        bundle.putString("Address", predictedRestaurant.getRestaurant().getAddress());
 
         RestaurantResultFragment fragment = new RestaurantResultFragment();
 
@@ -333,12 +321,7 @@ public class SearchFragment extends Fragment implements LocationListener {
                 Bitmap imageBitmap = null;
                 try {
                     imageBitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), imageUri);
-                    finalPrediction = sendImagetoFirebase(imageBitmap);
-                    if (finalPrediction != null){
-                        openResultFragment(finalPrediction);
-                    }else{
-                        txtResult.setText(errorPredictionMessage);
-                    }
+                    sendImagetoFirebase(imageBitmap);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -346,8 +329,8 @@ public class SearchFragment extends Fragment implements LocationListener {
         }
     }
 
-    public Prediction sendImagetoFirebase(Bitmap image) {
-        Prediction finalPrediction;
+    public void sendImagetoFirebase(Bitmap image) {
+        txtResult.setText("");
         Log.d("7.1 Status: ", "send image to firebase");
 
         FirebaseCustomLocalModel localModel;
@@ -394,10 +377,14 @@ public class SearchFragment extends Fragment implements LocationListener {
                                             }
                                         }
                                         if (combinedResults.isEmpty()) {
-                                            finalPrediction = new Prediction(bestRestaurants.get(0).getRestaurant(), bestRestaurants.get(0).getScore());
+                                            Prediction finalPrediction = new Prediction(bestRestaurants.get(0).getRestaurant(), bestRestaurants.get(0).getScore());
+                                            openResultFragment(finalPrediction);
                                         } else {
-                                            finalPrediction = new Prediction(combinedResults.get(0).getRestaurant(), combinedResults.get(0).getScore());
+                                            Prediction finalPrediction = new Prediction(combinedResults.get(0).getRestaurant(), combinedResults.get(0).getScore());
+                                            openResultFragment(finalPrediction);
                                         }
+                                    }else{
+                                        txtResult.setText(errorPredictionMessage);
                                     }
                                 }
                             });
@@ -411,7 +398,6 @@ public class SearchFragment extends Fragment implements LocationListener {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
-        return finalPrediction;
     }
 
     @Override

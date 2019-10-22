@@ -8,16 +8,18 @@ public class Restaurant {
     String name;
     double latitude;
     double longitude;
+    String address;
     Bitmap photo;
 
     public Restaurant() { }
 
-    public Restaurant(String documentId, String id, String name, double latitude, double longitude, Bitmap photo) {
+    public Restaurant(String documentId, String id, String name, double latitude, double longitude, String address, Bitmap photo) {
         this.documentId = documentId;
         this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.address = address;
         this.photo = photo;
     }
 
@@ -39,5 +41,9 @@ public class Restaurant {
 
     public double getLongitude() {
         return longitude;
+    }
+
+    public String getAddress() {
+        return address;
     }
 }
