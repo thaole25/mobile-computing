@@ -1,5 +1,7 @@
 package com.example.restaurantrecognition;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.example.restaurantrecognition.ui.FragmentInteractionListener;
@@ -12,11 +14,17 @@ import com.example.restaurantrecognition.ui.settings.SettingsFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import android.view.MenuItem;
-import android.view.View;
 
-import androidx.annotation.NonNull;
+import android.util.Log;
+import android.view.Menu;
+
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
@@ -24,17 +32,20 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.example.restaurantrecognition.ui.exit.ExitFragment;
+import com.example.restaurantrecognition.ui.help.HelpFragment;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchItem;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.search.SearchFragment;
+import com.example.restaurantrecognition.ui.settings.SettingsFragment;
 import com.google.android.material.navigation.NavigationView;
+import com.google.gson.Gson;
 
-import androidx.drawerlayout.widget.DrawerLayout;
+import java.util.ArrayList;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-import android.view.Menu;
-import android.widget.Toast;
-
-public class SideMenuActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, FragmentInteractionListener {
+public class SideMenuActivity extends AppCompatActivity
+        implements FragmentInteractionListener , NavigationView.OnNavigationItemSelectedListener, RecentMatchesFragment.OnListFragmentInteractionListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
@@ -42,6 +53,19 @@ public class SideMenuActivity extends AppCompatActivity implements NavigationVie
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        ArrayList<RecentMatchItem> matchItemList = new ArrayList<>();
+        matchItemList.add(new RecentMatchItem(1, "Prontos", 324223));
+        matchItemList.add(new RecentMatchItem(2, "Sushi Place", 165164));
+        matchItemList.add(new RecentMatchItem(3, "Catch of the Day", 596111));
+        matchItemList.add(new RecentMatchItem(4, "Subway", 165151));
+        String json = gson.toJson(matchItemList);
+        editor.putString(RecentMatchItem.PREFERENCES_STORE_NAME, json);
+        editor.apply();
+
         setContentView(R.layout.activity_side_menu);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -137,5 +161,12 @@ public class SideMenuActivity extends AppCompatActivity implements NavigationVie
         drawer.closeDrawer(GravityCompat.START);
 
         return;
+    }
+
+    @Override
+    public void onListFragmentInteraction(RecentMatchItem item) {
+        // TODO: redirect to relevant restaurant info
+        Log.d(getCallingPackage(), "selected: "+item.id);
+        Toast.makeText(getApplicationContext(), "clicked on restaurant: " + item.restaurantName, Toast.LENGTH_LONG).show();
     }
 }
