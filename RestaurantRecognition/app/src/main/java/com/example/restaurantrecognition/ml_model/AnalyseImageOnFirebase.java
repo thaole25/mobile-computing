@@ -66,7 +66,8 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
         FirebaseModelInterpreterOptions options;
         FirebaseModelInputOutputOptions inputOutputOptions;
 
-        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
+//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
+        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("model.tflite").build();
 
         FirebaseModelInterpreter interpreter;
         try {
@@ -117,17 +118,20 @@ public class AnalyseImageOnFirebase extends FragmentActivity {
     }
 
     private float[][][][] imagePreProcessing(Bitmap image) {
-        Bitmap bitmap = Bitmap.createScaledBitmap(image, IMG_SIZE, IMG_SIZE, true);
+        Bitmap bitmap = Bitmap.createScaledBitmap(image, IMG_SIZE, IMG_SIZE, false);
         int batchNum = 0;
         float[][][][] input = new float[1][IMG_SIZE][IMG_SIZE][IMG_CHANNEL];
         for (int x = 0; x < IMG_SIZE; x++) {
             for (int y = 0; y < IMG_SIZE; y++) {
                 int pixel = bitmap.getPixel(x, y);
-                input[batchNum][x][y][0] = (Color.red(pixel)) / 128.0f; /// 255;
-                input[batchNum][x][y][1] = (Color.green(pixel)) / 128.0f;  // / 255;
-                input[batchNum][x][y][2] = (Color.blue(pixel)) / 128.0f; /// / 255;
+                input[batchNum][x][y][0] = (Color.red(pixel)) / 255.0f;
+                input[batchNum][x][y][1] = (Color.green(pixel)) / 255.0f;
+                input[batchNum][x][y][2] = (Color.blue(pixel)) / 255.0f;
+//                Log.i("Pixel : ", String.format("number %d", Color.red(pixel)));
+
             }
         }
+
         return input;
     }
 }

@@ -14,7 +14,7 @@ def get_mobilenet():
   mobileModel.add(baseModel)
   mobileModel.add(GlobalAveragePooling2D())
   mobileModel.add(Dense(512, activation = 'relu'))
-  mobileModel.add(Dense(512, activation = 'relu'))    
+  mobileModel.add(Dense(256, activation = 'relu'))    
   mobileModel.add(Dropout(0.5))
   mobileModel.add(Dense(constants.NUM_CLASSES, activation='softmax'))
   mobileModel.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy']) 
@@ -28,12 +28,15 @@ def run_mobilenet():
   print ("Train Final Model-----------------------------------")
   mobileModel = get_mobilenet()
   checkpoint = ModelCheckpoint(constants.CHECKPOINT_MOBILE, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-  early_stopping = EarlyStopping(monitor='val_loss', patience=8)    
+  early_stopping = EarlyStopping(monitor='val_loss', patience=4)    
   hist = mobileModel.fit(x_train, y_train, epochs=constants.EPOCHS, validation_data=(x_val, y_val), \
               batch_size=constants.BATCH_SIZE_TRAIN, verbose=2, callbacks=[early_stopping, checkpoint])
-  mobileModel.load_weights(constants.CHECKPOINT_MOBILE)
-  mobileModel.save(constants.BEST_MODEL_MOBILENET)
   historyFile = open(constants.HISTORY_MOBILENET, 'wb')
   pickle.dump(hist.history, historyFile)
   historyFile.close()
 
+def save_model():
+  mobileModel = get_mobilenet()
+  mobileModel.load_weights(constants.CHECKPOINT_MOBILE)
+  mobileModel.save(constants.BEST_MODEL_MOBILENET)
+  
