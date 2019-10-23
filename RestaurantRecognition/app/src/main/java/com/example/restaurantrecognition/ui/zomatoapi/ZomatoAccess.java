@@ -142,7 +142,7 @@ public class ZomatoAccess {
         String textResult = "";
         String urlString="";
         final int countParameter = 20;
-        final int radiusArea = 50; // in Meter
+        final int radiusArea = 500; // in Meter
 
         try {
             // Define Basic String URL
