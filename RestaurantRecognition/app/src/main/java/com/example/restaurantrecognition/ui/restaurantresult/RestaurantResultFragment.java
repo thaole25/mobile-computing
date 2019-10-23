@@ -210,12 +210,12 @@ public class RestaurantResultFragment extends Fragment {
             resList = zomatoAccess.findNearbyRestaurants(name, city_id, lat, lon);
             restaurantList = jsonAdapter.getRestaurantList(resList);
 
-            if (zomatoId != 0){
-                String predictedRestaurant = zomatoAccess.getRestaurantDetails(Integer.toString(zomatoId));
-                List<Restaurant> predictedRestaurantList = jsonAdapter.getRestaurantDetails(predictedRestaurant);
-                predictedRestaurantList.addAll(restaurantList);
-                return predictedRestaurantList;
-            }
+//            if (zomatoId != 0){
+//                String predictedRestaurant = zomatoAccess.getRestaurantDetails(Integer.toString(zomatoId));
+//                List<Restaurant> predictedRestaurantList = jsonAdapter.getRestaurantDetails(predictedRestaurant);
+//                predictedRestaurantList.addAll(restaurantList);
+//                return predictedRestaurantList;
+//            }
 
             return restaurantList;
         }

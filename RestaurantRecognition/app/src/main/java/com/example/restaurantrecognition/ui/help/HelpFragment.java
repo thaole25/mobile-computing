@@ -62,7 +62,7 @@ public class HelpFragment extends Fragment {
                 Intent messageIntent = new Intent(Intent.ACTION_SEND);
                 messageIntent.setType("message/rfc822");
                 messageIntent.putExtra(Intent.EXTRA_EMAIL,new String[]{"gegarciam95@gmail.com"});
-                messageIntent.putExtra(Intent.EXTRA_SUBJECT, "Help and Feedback: Restaurant Finder");
+                messageIntent.putExtra(Intent.EXTRA_SUBJECT, "Help and Feedback: Restaurant Lens");
                 messageIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(messageBody));
                 try {
                     startActivity(Intent.createChooser(messageIntent, "Sending email ..."));

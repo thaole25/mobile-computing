@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Restaurant Finder</string>
-    <string name="title_activity_side_menu">Restaurant Finder</string>
+    <string name="app_name">Restaurant Lens</string>
+    <string name="title_activity_side_menu">Restaurant Lens</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Restaurant Finder</string>
+    <string name="nav_header_title">Restaurant Lens</string>
     <string name="nav_header_subtitle"></string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
