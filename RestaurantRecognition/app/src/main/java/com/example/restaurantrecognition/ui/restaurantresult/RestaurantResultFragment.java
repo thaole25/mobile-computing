@@ -48,7 +48,7 @@ public class RestaurantResultFragment extends Fragment {
     private TextView viewName, viewAddress, viewRating, gMapText, allReview, normalMenu,
             currency, price;
     private ImageView viewImage, ratingStar;
-    private Button button;
+    private Button buttonNotRight, buttonCheapest;
     private LinearLayout listView, menuView;
 
     private String name, address;
@@ -193,6 +193,35 @@ public class RestaurantResultFragment extends Fragment {
 
     }
 
+    private class GetClosestAsync extends AsyncTask<Void, Void, List<Restaurant>> {
+
+        @Override
+        protected List<Restaurant> doInBackground(Void... voids) {
+
+            List<Restaurant> restaurantList;
+
+            ZomatoAccess zomatoAccess = new ZomatoAccess();
+            JSONAdapter jsonAdapter = new JSONAdapter();
+            String resList = null;
+            //GET LOCATION
+            String res = zomatoAccess.findNearbyLocation(lat, lon, address);
+            int city_id = jsonAdapter.getLocationId(res);
+            //GET RESTAURANT LIST
+            resList = zomatoAccess.findNearbyRestaurants(name, city_id, lat, lon);
+            restaurantList = jsonAdapter.getRestaurantList(resList);
+
+            if (zomatoId != 0){
+                String predictedRestaurant = zomatoAccess.getRestaurantDetails(Integer.toString(zomatoId));
+                List<Restaurant> predictedRestaurantList = jsonAdapter.getRestaurantDetails(predictedRestaurant);
+                predictedRestaurantList.addAll(restaurantList);
+                return predictedRestaurantList;
+            }
+
+            return restaurantList;
+        }
+
+    }
+
     private void setupViewElements(View root) {
 
         viewName = root.findViewById(R.id.restaurantName);
@@ -207,7 +236,8 @@ public class RestaurantResultFragment extends Fragment {
         normalMenu = root.findViewById(R.id.normalmenuText);
         currency = root.findViewById(R.id.currency);
         price = root.findViewById(R.id.priceContent);
-        button = root.findViewById(R.id.btnNotRightRestaurant);
+        buttonNotRight = root.findViewById(R.id.btnNotRightRestaurant);
+        buttonCheapest = root.findViewById(R.id.btnNearbyRestaurant);
 
         viewName.setText(restaurant.getName());
         viewAddress.setText(restaurant.getAddress());
@@ -260,7 +290,7 @@ public class RestaurantResultFragment extends Fragment {
             }
         });
 
-        button.setOnClickListener(new View.OnClickListener() {
+        buttonNotRight.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 FragmentTransaction fragmentTransaction = fm.beginTransaction();
@@ -279,6 +309,48 @@ public class RestaurantResultFragment extends Fragment {
                 fragmentTransaction.replace(R.id.fragmentContent, fragment);
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
+            }
+        });
+
+        buttonCheapest.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                FragmentTransaction fragmentTransaction = fm.beginTransaction();
+                Bundle bundle = new Bundle();
+
+                GetClosestAsync getClosestAsync = new GetClosestAsync();
+                try {
+                    List<Restaurant> restaurantList = getClosestAsync.execute().get();
+                    List<Restaurant> tempList = new ArrayList<>();
+
+                    /* Filtering cheaper only */
+                    for (int i=0; i<restaurantList.size() ;i++) {
+                        if (Double.parseDouble(restaurantList.get(i).getPriceForTwo()) < Double.parseDouble(restaurant.getPriceForTwo())) {
+                            tempList.add(restaurantList.get(i));
+                        }
+                    }
+
+                    restaurantList = tempList;
+
+                    int sizeCount = 0;
+                    while (sizeCount<restaurantList.size()) {
+                        bundle.putSerializable("Restaurant"+sizeCount, restaurantList.get(sizeCount));
+                        sizeCount++;
+                    }
+                    bundle.putInt("Count",restaurantList.size());
+
+                    SearchResultFragment fragment = new SearchResultFragment();
+
+                    fragment.setArguments(bundle);
+                    fragmentTransaction.replace(R.id.fragmentContent, fragment);
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
