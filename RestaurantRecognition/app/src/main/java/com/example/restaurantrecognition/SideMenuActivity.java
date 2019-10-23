@@ -54,8 +54,8 @@ public class SideMenuActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // Delete old sharedpreferences
-        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
-        sharedPreferences.edit().clear().commit();
+//        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
+//        sharedPreferences.edit().clear().commit();
 
         setContentView(R.layout.activity_side_menu);
         Toolbar toolbar = findViewById(R.id.toolbar);

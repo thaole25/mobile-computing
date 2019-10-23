@@ -34,6 +34,15 @@ def getAllRestaurants():
   pdRestaurant = pd.DataFrame.from_dict(restaurantDict, orient='index',columns=['Restaurant Name', 'Latitude', 'Longitude', 'Address'])
   pdRestaurant.to_csv('../data/training/restaurants.csv')
 
+def searchForZomatoId(lat, long):
+  results =  zomato.search(lat=lat, lon=long, radius=50, sort='real_distance', count=10)
+  restaurants = results['restaurants']
+  for restaurant in restaurants:
+    resId = restaurant['restaurant']['id']
+    resName = restaurant['restaurant']['name']
+    resAddress = restaurant['restaurant']['location']['address']
+    print (resId, resName, resAddress)
+
 def getGoogleImages():
   """
   Download images from Google image by restaurant name
@@ -57,4 +66,5 @@ def getGoogleImages():
   
 if __name__ == "__main__":  
   # getAllRestaurants()
-  getGoogleImages()
+  # getGoogleImages()
+  searchForZomatoId(-37.813937, 144.961602)
