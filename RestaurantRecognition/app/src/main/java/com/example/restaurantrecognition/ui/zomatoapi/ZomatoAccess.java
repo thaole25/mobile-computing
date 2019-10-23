@@ -78,7 +78,7 @@ public class ZomatoAccess {
         String textResult = "";
         String urlString="";
         final int countParameter = 5;
-        final int radiusArea = 100; // in Meter
+        final int radiusArea = 50; // in Meter
 
         try {
             // Define Basic String URL
@@ -95,6 +95,72 @@ public class ZomatoAccess {
             urlString+="&lon="; urlString+=lon;
             urlString+="&count="; urlString+=countParameter;
             urlString+="&radius="; urlString+=radiusArea;
+
+            // Define URL
+            url = new URL(urlString);
+
+            // Open connection
+            conn = (HttpURLConnection) url.openConnection();
+
+            // Set the timeout
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
+
+            // Set connection method to GET
+            conn.setRequestMethod("GET");
+
+            // Add HTTP Headers
+            conn.setRequestProperty("user-key",API_KEY);
+            conn.setRequestProperty("Content-Type","application/json");
+            conn.setRequestProperty("Accept","application/json");
+
+            // Read the response
+            Scanner inStream = new Scanner(conn.getInputStream());
+
+            // Read the input stream and store it as string
+            while(inStream.hasNextLine()) {
+                textResult+=inStream.nextLine();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            conn.disconnect();
+        }
+
+        return textResult;
+
+    }
+
+    // Getting a list of matching restaurants
+    public String findNearbyRestaurants(String restaurant, int cityId, double lat, double lon) {
+        final String method_path = "search?";
+
+        URL url = null;
+        HttpURLConnection conn = null;
+
+        String textResult = "";
+        String urlString="";
+        final int countParameter = 20;
+        final int radiusArea = 50; // in Meter
+
+        try {
+            // Define Basic String URL
+            urlString+=BASE_URL;
+            urlString+=method_path;
+
+            String restaurantBuffer = restaurant.replaceAll(" ","%20");
+
+            // Add Request Body to URL;
+            urlString+="entity_id="; urlString+=cityId;
+            urlString+="&entity_type="; urlString+="city";
+            urlString+="&q="; urlString+=restaurantBuffer;
+            urlString+="&lat="; urlString+=lat;
+            urlString+="&lon="; urlString+=lon;
+            urlString+="&count="; urlString+=countParameter;
+            urlString+="&radius="; urlString+=radiusArea;
+            urlString+="&sort=real_distance";
+            urlString+="&order=asc";
 
             // Define URL
             url = new URL(urlString);
