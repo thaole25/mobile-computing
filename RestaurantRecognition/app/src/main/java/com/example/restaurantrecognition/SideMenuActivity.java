@@ -53,18 +53,9 @@ public class SideMenuActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        // Delete old sharedpreferences
         SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        ArrayList<RecentMatchItem> matchItemList = new ArrayList<>();
-        matchItemList.add(new RecentMatchItem(1, "Prontos", 324223));
-        matchItemList.add(new RecentMatchItem(2, "Sushi Place", 165164));
-        matchItemList.add(new RecentMatchItem(3, "Catch of the Day", 596111));
-        matchItemList.add(new RecentMatchItem(4, "Subway", 165151));
-        String json = gson.toJson(matchItemList);
-        editor.putString(RecentMatchItem.PREFERENCES_STORE_NAME, json);
-        editor.apply();
+        sharedPreferences.edit().clear().commit();
 
         setContentView(R.layout.activity_side_menu);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -168,5 +159,6 @@ public class SideMenuActivity extends AppCompatActivity
         // TODO: redirect to relevant restaurant info
         Log.d(getCallingPackage(), "selected: "+item.id);
         Toast.makeText(getApplicationContext(), "clicked on restaurant: " + item.restaurantName, Toast.LENGTH_LONG).show();
+
     }
 }

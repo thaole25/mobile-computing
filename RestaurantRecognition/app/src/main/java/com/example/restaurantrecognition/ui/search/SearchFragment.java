@@ -4,9 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.location.Criteria;
 import android.location.Location;
@@ -24,6 +26,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,6 +52,7 @@ import com.example.restaurantrecognition.firestore.GPSLocation;
 import com.example.restaurantrecognition.firestore.Prediction;
 
 import com.example.restaurantrecognition.firestore.Restaurant;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchItem;
 import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
 import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
@@ -70,12 +74,16 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import id.zelory.compressor.Compressor;
 
@@ -95,7 +103,7 @@ public class SearchFragment extends Fragment implements LocationListener {
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 15;
 
-//    private TextView txtResult;
+    //    private TextView txtResult;
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
     private GPSLocation gpsLocation = new GPSLocation();
 
@@ -366,7 +374,7 @@ public class SearchFragment extends Fragment implements LocationListener {
                                 public void onCallBack(ArrayList<Restaurant> restaurantArrayList) {
                                     ArrayList<Prediction> bestRestaurants = aiModel.retrieveTopPredictions(restaurantArrayList, probabilities, 3);
                                     ArrayList<Prediction> closeRestaurantList = gpsLocation.getMoreSimilarRestaurant(restaurantArrayList, location.getLatitude(), location.getLongitude());
-                                    if (! bestRestaurants.isEmpty()) {
+                                    if (!bestRestaurants.isEmpty()) {
                                         ArrayList<Prediction> combinedResults = new ArrayList<>();
                                         for (Prediction bestRes : bestRestaurants) {
                                             for (Prediction closeRes : closeRestaurantList) {
@@ -380,12 +388,16 @@ public class SearchFragment extends Fragment implements LocationListener {
                                         if (combinedResults.isEmpty()) {
                                             Prediction finalPrediction = new Prediction(bestRestaurants.get(0).getRestaurant(), bestRestaurants.get(0).getScore());
                                             openResultFragment(finalPrediction);
+                                            writeToSharedPreferences(finalPrediction);
                                         } else {
                                             Prediction finalPrediction = new Prediction(combinedResults.get(0).getRestaurant(), combinedResults.get(0).getScore());
                                             openResultFragment(finalPrediction);
+                                            writeToSharedPreferences(finalPrediction);
                                         }
-                                    }else{
+
+                                    } else {
                                         txtResult.setText(errorPredictionMessage);
+                                        txtResult.setTextColor(Color.RED);
                                     }
                                 }
                             });
@@ -399,6 +411,29 @@ public class SearchFragment extends Fragment implements LocationListener {
         } catch (FirebaseMLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void writeToSharedPreferences(Prediction finalPrediction){
+        // Get old shared preferences
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
+        String oldPreferences = sharedPreferences.getString(RecentMatchItem.PREFERENCES_STORE_NAME, null);
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<RecentMatchItem>>(){}.getType();
+        ArrayList<RecentMatchItem> matchItemList;
+        if (oldPreferences != null){
+            matchItemList = gson.fromJson(oldPreferences, type);
+        }else{
+            matchItemList = new ArrayList<>();
+        }
+        // Get predicted restaurant
+        Restaurant predictedRestaurant = finalPrediction.getRestaurant();
+        matchItemList.add(new RecentMatchItem(predictedRestaurant.getId(), predictedRestaurant.getName(), predictedRestaurant.getAddress()));
+        Log.i("Final Prediction ", String.format("Name: %s", predictedRestaurant.getName()));
+        // Commit to shared preferences
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        String json = gson.toJson(matchItemList);
+        editor.putString(RecentMatchItem.PREFERENCES_STORE_NAME, json);
+        editor.commit();
     }
 
     @Override
