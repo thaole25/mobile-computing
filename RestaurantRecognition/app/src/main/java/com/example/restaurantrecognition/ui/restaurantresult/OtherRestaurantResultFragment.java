@@ -154,7 +154,7 @@ public class OtherRestaurantResultFragment extends Fragment {
         normalMenu = root.findViewById(R.id.normalmenuText);
         currency = root.findViewById(R.id.currency);
         price = root.findViewById(R.id.priceContent);
-        button = root.findViewById(R.id.button);
+        button = root.findViewById(R.id.btnNotRightRestaurant);
 
         viewName.setText(restaurant.getName());
         viewAddress.setText(restaurant.getAddress());
