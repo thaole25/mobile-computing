@@ -77,6 +77,11 @@ public class SideMenuActivity extends AppCompatActivity
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+        // Condition to exit or not the application by exit button
+        if (getIntent().getBooleanExtra("EXIT", false))
+        {
+            finish();
+        }
     }
 
     @Override

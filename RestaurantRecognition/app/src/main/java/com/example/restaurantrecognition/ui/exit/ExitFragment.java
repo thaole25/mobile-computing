@@ -1,5 +1,6 @@
 package com.example.restaurantrecognition.ui.exit;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,23 +14,17 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
+import com.example.restaurantrecognition.SideMenuActivity;
 
 public class ExitFragment extends Fragment {
-
-    private ExitViewModel exitViewModel;
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        exitViewModel =
-                ViewModelProviders.of(this).get(ExitViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_exit, container, false);
-        final TextView textView = root.findViewById(R.id.text_exit);
-        exitViewModel.getText().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-                textView.setText(s);
-            }
-        });
-        return root;
+
+        Intent exitIntent = new Intent(getActivity(), SideMenuActivity.class);
+        exitIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        exitIntent.putExtra("EXIT", true);
+        startActivity(exitIntent);
+        getActivity().finish();
+        return null;
     }
 }
