@@ -429,7 +429,8 @@ public class SearchFragment extends Fragment implements LocationListener {
         }
         // Get predicted restaurant
         Restaurant predictedRestaurant = finalPrediction.getRestaurant();
-        matchItemList.add(new RecentMatchItem(predictedRestaurant.getId(), predictedRestaurant.getName(), predictedRestaurant.getAddress()));
+        matchItemList.add(new RecentMatchItem(predictedRestaurant.getId(), predictedRestaurant.getName(), predictedRestaurant.getAddress(),
+                        predictedRestaurant.getLatitude(), predictedRestaurant.getLongitude(), predictedRestaurant.getZomatoId()));
         Log.i("Final Prediction ", String.format("Name: %s", predictedRestaurant.getName()));
         // Commit to shared preferences
         SharedPreferences.Editor editor = sharedPreferences.edit();

@@ -6,11 +6,17 @@ public class RecentMatchItem {
     public final String id;
     public final String restaurantName;
     public final String address;
+    public final double latitude;
+    public final double longitude;
+    public final int zomatoId;
 
-    public RecentMatchItem(String id, String restaurantName, String address) {
+    public RecentMatchItem(String id, String restaurantName, String address, double latitude, double longitude, int zomatoId) {
         this.id = id;
         this.restaurantName = restaurantName;
         this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.zomatoId = zomatoId;
     }
 
     @Override
