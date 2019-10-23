@@ -3,14 +3,14 @@ package com.example.restaurantrecognition.ui.recentmatches;
 public class RecentMatchItem {
     public static final String PREFERENCES_STORE_NAME = "recent-matches-store";
 
-    public final int id;
+    public final String id;
     public final String restaurantName;
-    public final int zomatoId;
+    public final String address;
 
-    public RecentMatchItem(int id, String restaurantName, int zomatoId) {
+    public RecentMatchItem(String id, String restaurantName, String address) {
         this.id = id;
         this.restaurantName = restaurantName;
-        this.zomatoId = zomatoId;
+        this.address = address;
     }
 
     @Override

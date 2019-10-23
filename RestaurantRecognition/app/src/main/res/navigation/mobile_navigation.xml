@@ -12,12 +12,6 @@
         tools:layout="@layout/fragment_search" />
 
     <fragment
-        android:id="@+id/nav_find_from_folder"
-        android:name="com.example.restaurantrecognition.ui.search.SearchFromFolder"
-        android:label="Search From Folder"
-        tools:layout="@layout/fragment_search_from_folder" />
-
-    <fragment
         android:id="@+id/nav_recent_matches"
         android:name="com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment"
         android:label="@string/menu_recent_matches"

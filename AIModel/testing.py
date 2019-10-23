@@ -33,6 +33,7 @@ def create_test_data():
       for imageFile in imageFiles:
         image = load_img(restaurantPath + imageFile, target_size=(constants.IMG_HEIGHT, constants.IMG_WIDTH))
         image = img_to_array(image) / 255
+        print (image)
         x_test[i] = image
         y_test[i] = restaurantsId
         i += 1
@@ -44,10 +45,10 @@ def testing():
   y_test = np.load(constants.Y_TEST_FILE)
   y_test = to_categorical(y_test, num_classes=constants.NUM_CLASSES)
   model = load_model(constants.BEST_MODEL_MOBILENET)
-  # prediction = model.evaluate(x_test, y_test, batch_size=constants.BATCH_SIZE_TEST, verbose=1)
+  prediction = model.evaluate(x_test, y_test, batch_size=constants.BATCH_SIZE_TEST, verbose=1)
   
   # Return the probabilty distribution of all classes for each input image
-  prediction = model.predict(x_test)
+  # prediction = model.predict(x_test)
   print (prediction)
 
     

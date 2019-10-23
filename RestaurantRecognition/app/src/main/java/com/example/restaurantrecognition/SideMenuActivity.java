@@ -3,8 +3,21 @@ package com.example.restaurantrecognition;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+
+import com.example.restaurantrecognition.ui.FragmentInteractionListener;
+import com.example.restaurantrecognition.ui.exit.ExitFragment;
+import com.example.restaurantrecognition.ui.help.HelpFragment;
+import com.example.restaurantrecognition.ui.recentmatches.RecentMatchesFragment;
+import com.example.restaurantrecognition.ui.search.SearchFragment;
+import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
+import com.example.restaurantrecognition.ui.settings.SettingsFragment;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
+
 import android.util.Log;
 import android.view.Menu;
+
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -30,26 +43,19 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 
+
 public class SideMenuActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, RecentMatchesFragment.OnListFragmentInteractionListener {
+        implements FragmentInteractionListener , NavigationView.OnNavigationItemSelectedListener, RecentMatchesFragment.OnListFragmentInteractionListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout drawer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        ArrayList<RecentMatchItem> matchItemList = new ArrayList<>();
-        matchItemList.add(new RecentMatchItem(1, "Prontos", 324223));
-        matchItemList.add(new RecentMatchItem(2, "Sushi Place", 165164));
-        matchItemList.add(new RecentMatchItem(3, "Catch of the Day", 596111));
-        matchItemList.add(new RecentMatchItem(4, "Subway", 165151));
-        String json = gson.toJson(matchItemList);
-        editor.putString(RecentMatchItem.PREFERENCES_STORE_NAME, json);
-        editor.apply();
+        // Delete old sharedpreferences
+//        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
+//        sharedPreferences.edit().clear().commit();
 
         setContentView(R.layout.activity_side_menu);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -105,10 +111,10 @@ public class SideMenuActivity extends AppCompatActivity
     }
 
     @Override
-    public void onBackPressed(){
-        if (drawer.isDrawerOpen(GravityCompat.START)){
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else{
+        } else {
             super.onBackPressed();
         }
     }
@@ -116,7 +122,7 @@ public class SideMenuActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu. side_menu, menu);
+        getMenuInflater().inflate(R.menu.side_menu, menu);
         return true;
     }
 
@@ -127,10 +133,32 @@ public class SideMenuActivity extends AppCompatActivity
                 || super.onSupportNavigateUp();
     }
 
+    public void changeFragment(int id) {
+        Fragment fragment = null;
+        Class fragmentClass = null;
+        if (id == 1) {
+            fragmentClass = SearchResultFragment.class;
+        }
+
+        try {
+            fragment = (Fragment) fragmentClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragmentContent, fragment).addToBackStack("Fragment A").commit();
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+
+        return;
+    }
+
     @Override
     public void onListFragmentInteraction(RecentMatchItem item) {
         // TODO: redirect to relevant restaurant info
         Log.d(getCallingPackage(), "selected: "+item.id);
         Toast.makeText(getApplicationContext(), "clicked on restaurant: " + item.restaurantName, Toast.LENGTH_LONG).show();
+
     }
 }

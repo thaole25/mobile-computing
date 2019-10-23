@@ -8,15 +8,21 @@ public class Restaurant {
     String name;
     double latitude;
     double longitude;
+    String address;
     Bitmap photo;
+    int zomatoId;
 
-    public Restaurant(String documentId, String id, String name, double latitude, double longitude, Bitmap photo) {
+    public Restaurant() { }
+
+    public Restaurant(String documentId, String id, String name, double latitude, double longitude, String address, Bitmap photo, int zomatoId) {
         this.documentId = documentId;
         this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.address = address;
         this.photo = photo;
+        this.zomatoId = zomatoId;
     }
 
     public String getDocumentId() {
@@ -38,4 +44,10 @@ public class Restaurant {
     public double getLongitude() {
         return longitude;
     }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public int getZomatoId() { return zomatoId; }
 }

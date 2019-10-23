@@ -31,7 +31,8 @@ public class DatabaseManagement {
                                 document.get("name").toString(),
                                 document.getGeoPoint("gps").getLatitude(),
                                 document.getGeoPoint("gps").getLongitude(),
-                                null);
+                                document.get("address").toString(),
+                                null, Integer.parseInt(document.get("zomatoId").toString()));
                         restaurantList.add(restaurant);
                     }
                     fireStoreCallback.onCallBack(restaurantList);
