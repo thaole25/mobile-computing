@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -52,6 +53,7 @@ public class RestaurantResultFragment extends Fragment {
 
     private String name, address;
     private double lat, lon;
+    private int zomatoId;
 
     private ProgressDialog progressDialog;
     private Restaurant restaurant;
@@ -73,6 +75,8 @@ public class RestaurantResultFragment extends Fragment {
         this.address = bundle.getString("Address");
         this.lat = bundle.getDouble("Latitude");
         this.lon = bundle.getDouble("Longitude");
+        this.zomatoId = bundle.getInt("ZomatoId");
+
         progressDialog = new ProgressDialog(getActivity());
         progressDialog.setTitle("Loading Restaurant Data...");
         progressDialog.setMessage("Please Wait...");
@@ -153,12 +157,20 @@ public class RestaurantResultFragment extends Fragment {
 
             ZomatoAccess zomatoAccess = new ZomatoAccess();
             JSONAdapter jsonAdapter = new JSONAdapter();
+            String resList = null;
             //GET LOCATION
             String res = zomatoAccess.findNearbyLocation(lat, lon, address);
             int city_id = jsonAdapter.getLocationId(res);
             //GET RESTAURANT LIST
-            String resList = zomatoAccess.findMatchingRestaurants(name, city_id, lat, lon);
+            resList = zomatoAccess.findMatchingRestaurants(name, city_id, lat, lon);
             restaurantList = jsonAdapter.getRestaurantList(resList);
+
+            if (zomatoId != 0){
+                String predictedRestaurant = zomatoAccess.getRestaurantDetails(Integer.toString(zomatoId));
+                List<Restaurant> predictedRestaurantList = jsonAdapter.getRestaurantDetails(predictedRestaurant);
+                predictedRestaurantList.addAll(restaurantList);
+                return predictedRestaurantList;
+            }
 
             return restaurantList;
         }

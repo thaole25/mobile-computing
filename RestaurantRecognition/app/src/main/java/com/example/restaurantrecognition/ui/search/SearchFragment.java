@@ -311,6 +311,7 @@ public class SearchFragment extends Fragment implements LocationListener {
         bundle.putDouble("Latitude", predictedRestaurant.getRestaurant().getLatitude());
         bundle.putDouble("Longitude", predictedRestaurant.getRestaurant().getLongitude());
         bundle.putString("Address", predictedRestaurant.getRestaurant().getAddress());
+        bundle.putInt("ZomatoId", predictedRestaurant.getRestaurant().getZomatoId());
 
         RestaurantResultFragment fragment = new RestaurantResultFragment();
 
@@ -413,16 +414,17 @@ public class SearchFragment extends Fragment implements LocationListener {
         }
     }
 
-    private void writeToSharedPreferences(Prediction finalPrediction){
+    private void writeToSharedPreferences(Prediction finalPrediction) {
         // Get old shared preferences
         SharedPreferences sharedPreferences = getContext().getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
         String oldPreferences = sharedPreferences.getString(RecentMatchItem.PREFERENCES_STORE_NAME, null);
         Gson gson = new Gson();
-        Type type = new TypeToken<List<RecentMatchItem>>(){}.getType();
+        Type type = new TypeToken<List<RecentMatchItem>>() {
+        }.getType();
         ArrayList<RecentMatchItem> matchItemList;
-        if (oldPreferences != null){
+        if (oldPreferences != null) {
             matchItemList = gson.fromJson(oldPreferences, type);
-        }else{
+        } else {
             matchItemList = new ArrayList<>();
         }
         // Get predicted restaurant

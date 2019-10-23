@@ -27,6 +27,29 @@ public class JSONAdapter {
 
     }
 
+    public List<Restaurant> getRestaurantDetails(String str){
+        ArrayList<Restaurant> restaurantList = new ArrayList<>();
+        try {
+            JSONObject restaurantObject = new JSONObject(str);
+            JSONObject locationObject = restaurantObject.getJSONObject("location");
+            JSONObject ratingObject = restaurantObject.getJSONObject("user_rating");
+            restaurantList.add(new Restaurant(restaurantObject.getString("id"),
+                        restaurantObject.getString("thumb"),
+                        restaurantObject.getString("name"),
+                        locationObject.getString("address"),
+                        ratingObject.getString("aggregate_rating"),
+                        restaurantObject.getString("menu_url"),
+                        locationObject.getDouble("latitude"),
+                        locationObject.getDouble("longitude"),
+                        restaurantObject.getString("average_cost_for_two"),
+                        restaurantObject.getString("currency")));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return restaurantList;
+    }
+
     public List<Restaurant> getRestaurantList(String str) {
 
         ArrayList<Restaurant> restaurantList = new ArrayList<>();
