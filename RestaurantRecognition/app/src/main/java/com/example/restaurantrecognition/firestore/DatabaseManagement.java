@@ -19,7 +19,7 @@ public class DatabaseManagement {
     CollectionReference restaurantRefList = db.collection("restaurants");
 
     // Read the document: restaurants from firestore and save them in a arraylist.
-    public ArrayList<Restaurant> readData(FirestoreCallBack fireStoreCallback){
+    public ArrayList<Restaurant> readData(FirestoreCallBack fireStoreCallback) {
         ArrayList<Restaurant> restaurantList = new ArrayList<>();
         restaurantRefList.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -36,9 +36,7 @@ public class DatabaseManagement {
                         restaurantList.add(restaurant);
                     }
                     fireStoreCallback.onCallBack(restaurantList);
-                }
-                else
-                {
+                } else {
                     Log.d("Error", "Error getting documents.", task.getException());
                 }
             }
@@ -48,7 +46,7 @@ public class DatabaseManagement {
 
     // Firestore works asynchronously, so it does not retrieve the data correctly and return [].
     // Therefore I found this solution is necessary using a interface callback
-    public interface FirestoreCallBack{
+    public interface FirestoreCallBack {
         void onCallBack(ArrayList<Restaurant> restaurantArrayList);
     }
 

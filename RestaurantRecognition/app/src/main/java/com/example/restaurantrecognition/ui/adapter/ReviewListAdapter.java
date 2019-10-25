@@ -13,8 +13,6 @@ import androidx.annotation.Nullable;
 
 import com.example.restaurantrecognition.R;
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 
 public class ReviewListAdapter extends ArrayAdapter<Review> {

@@ -10,7 +10,8 @@ public class Prediction {
         this.score = score;
     }
 
-    public Prediction() {}
+    public Prediction() {
+    }
 
     public Restaurant getRestaurant() {
         return restaurant;

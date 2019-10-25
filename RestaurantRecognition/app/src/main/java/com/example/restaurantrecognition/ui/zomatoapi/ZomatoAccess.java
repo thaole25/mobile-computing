@@ -1,8 +1,6 @@
 package com.example.restaurantrecognition.ui.zomatoapi;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
@@ -18,19 +16,23 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
         final int countParameter = 1;
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
             // Add Request Body to URL;
-            urlString+="query="; urlString+=address;
-            urlString+="&lat="; urlString+=lat;
-            urlString+="&lon="; urlString+=lon;
-            urlString+="&count="; urlString+=countParameter;
+            urlString += "query=";
+            urlString += address;
+            urlString += "&lat=";
+            urlString += lat;
+            urlString += "&lon=";
+            urlString += lon;
+            urlString += "&count=";
+            urlString += countParameter;
 
             // Define URL
             url = new URL(urlString);
@@ -46,16 +48,16 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             Scanner inStream = new Scanner(conn.getInputStream());
 
             // Read the input stream and store it as string
-            while(inStream.hasNextLine()) {
-                textResult+=inStream.nextLine();
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
             }
 
         } catch (Exception e) {
@@ -76,25 +78,32 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
         final int countParameter = 5;
         final int radiusArea = 50; // in Meter
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
-            String restaurantBuffer = restaurant.replaceAll(" ","%20");
+            String restaurantBuffer = restaurant.replaceAll(" ", "%20");
 
             // Add Request Body to URL;
-            urlString+="entity_id="; urlString+=cityId;
-            urlString+="&entity_type="; urlString+="city";
-            urlString+="&q="; urlString+=restaurantBuffer;
-            urlString+="&lat="; urlString+=lat;
-            urlString+="&lon="; urlString+=lon;
-            urlString+="&count="; urlString+=countParameter;
-            urlString+="&radius="; urlString+=radiusArea;
+            urlString += "entity_id=";
+            urlString += cityId;
+            urlString += "&entity_type=";
+            urlString += "city";
+            urlString += "&q=";
+            urlString += restaurantBuffer;
+            urlString += "&lat=";
+            urlString += lat;
+            urlString += "&lon=";
+            urlString += lon;
+            urlString += "&count=";
+            urlString += countParameter;
+            urlString += "&radius=";
+            urlString += radiusArea;
 
             // Define URL
             url = new URL(urlString);
@@ -110,16 +119,16 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             Scanner inStream = new Scanner(conn.getInputStream());
 
             // Read the input stream and store it as string
-            while(inStream.hasNextLine()) {
-                textResult+=inStream.nextLine();
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
             }
 
         } catch (Exception e) {
@@ -140,27 +149,34 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
         final int countParameter = 20;
         final int radiusArea = 500; // in Meter
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
-            String restaurantBuffer = restaurant.replaceAll(" ","%20");
+            String restaurantBuffer = restaurant.replaceAll(" ", "%20");
 
             // Add Request Body to URL;
-            urlString+="entity_id="; urlString+=cityId;
-            urlString+="&entity_type="; urlString+="city";
-            urlString+="&q="; urlString+=restaurantBuffer;
-            urlString+="&lat="; urlString+=lat;
-            urlString+="&lon="; urlString+=lon;
-            urlString+="&count="; urlString+=countParameter;
-            urlString+="&radius="; urlString+=radiusArea;
-            urlString+="&sort=real_distance";
-            urlString+="&order=asc";
+            urlString += "entity_id=";
+            urlString += cityId;
+            urlString += "&entity_type=";
+            urlString += "city";
+            urlString += "&q=";
+            urlString += restaurantBuffer;
+            urlString += "&lat=";
+            urlString += lat;
+            urlString += "&lon=";
+            urlString += lon;
+            urlString += "&count=";
+            urlString += countParameter;
+            urlString += "&radius=";
+            urlString += radiusArea;
+            urlString += "&sort=real_distance";
+            urlString += "&order=asc";
 
             // Define URL
             url = new URL(urlString);
@@ -176,16 +192,16 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             Scanner inStream = new Scanner(conn.getInputStream());
 
             // Read the input stream and store it as string
-            while(inStream.hasNextLine()) {
-                textResult+=inStream.nextLine();
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
             }
 
         } catch (Exception e) {
@@ -206,18 +222,21 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
         final int countParameter = 5;
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
             // Add Request Body to URL;
-            urlString+="res_id="; urlString+=res_id;
-            urlString+="&start="; urlString+=offset;
-            urlString+="&count="; urlString+=countParameter;
+            urlString += "res_id=";
+            urlString += res_id;
+            urlString += "&start=";
+            urlString += offset;
+            urlString += "&count=";
+            urlString += countParameter;
 
             // Define URL
             url = new URL(urlString);
@@ -233,16 +252,16 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             Scanner inStream = new Scanner(conn.getInputStream());
 
             // Read the input stream and store it as string
-            while(inStream.hasNextLine()) {
-                textResult+=inStream.nextLine();
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
             }
 
         } catch (Exception e) {
@@ -262,16 +281,17 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
         final int countParameter = 5;
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
             // Add Request Body to URL;
-            urlString+="res_id="; urlString+=res_id;
+            urlString += "res_id=";
+            urlString += res_id;
 
             // Define URL
             url = new URL(urlString);
@@ -287,21 +307,21 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             try {
                 Scanner inStream = new Scanner(conn.getInputStream());
                 // Read the input stream and store it as string
-                while(inStream.hasNextLine()) {
-                    textResult+=inStream.nextLine();
+                while (inStream.hasNextLine()) {
+                    textResult += inStream.nextLine();
                 }
             } catch (Exception e1) {
                 Scanner inStream = new Scanner(conn.getErrorStream());
-                while(inStream.hasNextLine()) {
-                    textResult+=inStream.nextLine();
+                while (inStream.hasNextLine()) {
+                    textResult += inStream.nextLine();
                 }
             }
 
@@ -322,15 +342,16 @@ public class ZomatoAccess {
         HttpURLConnection conn = null;
 
         String textResult = "";
-        String urlString="";
+        String urlString = "";
 
         try {
             // Define Basic String URL
-            urlString+=BASE_URL;
-            urlString+=method_path;
+            urlString += BASE_URL;
+            urlString += method_path;
 
             // Add Request Body to URL;
-            urlString+="res_id="; urlString+=res_id;
+            urlString += "res_id=";
+            urlString += res_id;
 
             // Define URL
             url = new URL(urlString);
@@ -346,16 +367,16 @@ public class ZomatoAccess {
             conn.setRequestMethod("GET");
 
             // Add HTTP Headers
-            conn.setRequestProperty("user-key",API_KEY);
-            conn.setRequestProperty("Content-Type","application/json");
-            conn.setRequestProperty("Accept","application/json");
+            conn.setRequestProperty("user-key", API_KEY);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
 
             // Read the response
             Scanner inStream = new Scanner(conn.getInputStream());
 
             // Read the input stream and store it as string
-            while(inStream.hasNextLine()) {
-                textResult+=inStream.nextLine();
+            while (inStream.hasNextLine()) {
+                textResult += inStream.nextLine();
             }
 
         } catch (Exception e) {

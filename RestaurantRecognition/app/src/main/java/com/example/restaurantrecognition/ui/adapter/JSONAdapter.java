@@ -27,22 +27,22 @@ public class JSONAdapter {
 
     }
 
-    public List<Restaurant> getRestaurantDetails(String str){
+    public List<Restaurant> getRestaurantDetails(String str) {
         ArrayList<Restaurant> restaurantList = new ArrayList<>();
         try {
             JSONObject restaurantObject = new JSONObject(str);
             JSONObject locationObject = restaurantObject.getJSONObject("location");
             JSONObject ratingObject = restaurantObject.getJSONObject("user_rating");
             restaurantList.add(new Restaurant(restaurantObject.getString("id"),
-                        restaurantObject.getString("thumb"),
-                        restaurantObject.getString("name"),
-                        locationObject.getString("address"),
-                        ratingObject.getString("aggregate_rating"),
-                        restaurantObject.getString("menu_url"),
-                        locationObject.getDouble("latitude"),
-                        locationObject.getDouble("longitude"),
-                        restaurantObject.getString("average_cost_for_two"),
-                        restaurantObject.getString("currency")));
+                    restaurantObject.getString("thumb"),
+                    restaurantObject.getString("name"),
+                    locationObject.getString("address"),
+                    ratingObject.getString("aggregate_rating"),
+                    restaurantObject.getString("menu_url"),
+                    locationObject.getDouble("latitude"),
+                    locationObject.getDouble("longitude"),
+                    restaurantObject.getString("average_cost_for_two"),
+                    restaurantObject.getString("currency")));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -59,7 +59,7 @@ public class JSONAdapter {
             JSONArray jsonArray = completeJSON.getJSONArray("restaurants");
             JSONObject restaurantObject;
 
-            for (int i=0; i<jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 restaurantObject = jsonArray.getJSONObject(i);
                 JSONObject restaurantObjectVal = restaurantObject.getJSONObject("restaurant");
                 JSONObject locationObject = restaurantObjectVal.getJSONObject("location");
@@ -92,12 +92,12 @@ public class JSONAdapter {
             JSONArray jsonArray = completeJSON.getJSONArray("user_reviews");
             JSONObject reviewObject;
 
-            for (int i=0; i<jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 reviewObject = jsonArray.getJSONObject(i);
                 JSONObject reviewObjectVal = reviewObject.getJSONObject("review");
                 JSONObject userObject = reviewObjectVal.getJSONObject("user");
-                reviews.add(new Review(reviewObjectVal.getString("id"),reviewObjectVal.getString("rating"),
-                        reviewObjectVal.getString("review_text"),reviewObjectVal.getString("review_time_friendly"),
+                reviews.add(new Review(reviewObjectVal.getString("id"), reviewObjectVal.getString("rating"),
+                        reviewObjectVal.getString("review_text"), reviewObjectVal.getString("review_time_friendly"),
                         userObject.getString("name")));
             }
 
@@ -121,19 +121,19 @@ public class JSONAdapter {
             JSONArray jsonArray = completeJSON.getJSONArray("daily_menu");
             JSONObject menuObject;
 
-            for (int i=0; i<jsonArray.length(); i++) {
+            for (int i = 0; i < jsonArray.length(); i++) {
                 List<Food> foodList = new ArrayList<>();
                 menuObject = jsonArray.getJSONObject(i);
                 JSONArray foodArray = menuObject.getJSONArray("dishes");
                 JSONObject eachFood;
 
-                for (int j=0; j<foodArray.length(); j++) {
+                for (int j = 0; j < foodArray.length(); j++) {
                     eachFood = foodArray.getJSONObject(j);
                     foodList.add(new Food(eachFood.getString("dish_id"), eachFood.getString("name"), eachFood.getString("price")));
                 }
 
-                menus.add(new DailyMenu(menuObject.getString("daily_menu_id"),menuObject.getString("name"),
-                        menuObject.getString("daily_start"),menuObject.getString("daily_end"),foodList));
+                menus.add(new DailyMenu(menuObject.getString("daily_menu_id"), menuObject.getString("name"),
+                        menuObject.getString("daily_start"), menuObject.getString("daily_end"), foodList));
             }
 
         } catch (JSONException e) {

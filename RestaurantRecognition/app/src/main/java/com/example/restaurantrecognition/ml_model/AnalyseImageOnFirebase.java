@@ -2,13 +2,11 @@ package com.example.restaurantrecognition.ml_model;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.firestore.Restaurant;
-import com.google.android.gms.common.util.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

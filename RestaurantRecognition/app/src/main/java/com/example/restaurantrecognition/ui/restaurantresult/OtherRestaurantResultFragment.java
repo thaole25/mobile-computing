@@ -28,7 +28,6 @@ import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
 import com.example.restaurantrecognition.ui.adapter.Review;
 import com.example.restaurantrecognition.ui.adapter.ReviewListAdapter;
-import com.example.restaurantrecognition.ui.searchresult.SearchResultFragment;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultViewModel;
 import com.example.restaurantrecognition.ui.zomatoapi.ZomatoAccess;
 
@@ -47,15 +46,7 @@ public class OtherRestaurantResultFragment extends Fragment {
     ImageView viewImage, ratingStar;
     Button button;
     LinearLayout listView, menuView;
-
-    String name, address;
-    double lat, lon;
-
-    ProgressDialog progressDialog;
-    ReviewListAdapter reviewListAdapter;
     Restaurant restaurant;
-    List<Restaurant> restaurants;
-
     View root;
     LayoutInflater inflater;
 
@@ -68,7 +59,7 @@ public class OtherRestaurantResultFragment extends Fragment {
 
         Bundle bundle = this.getArguments();
 
-        this.restaurant = (Restaurant)bundle.getSerializable("Restaurant");
+        this.restaurant = (Restaurant) bundle.getSerializable("Restaurant");
 
         setupViewElements(root);
         setupOnClickListener();
@@ -98,7 +89,7 @@ public class OtherRestaurantResultFragment extends Fragment {
 
     }
 
-    private class GetReviewAsync extends AsyncTask<Restaurant, Void, List<Review>>{
+    private class GetReviewAsync extends AsyncTask<Restaurant, Void, List<Review>> {
 
         List<Review> reviewList = new ArrayList<>();
 
@@ -109,7 +100,7 @@ public class OtherRestaurantResultFragment extends Fragment {
             JSONAdapter jsonAdapter = new JSONAdapter();
 
             //GET Reviews
-            String reviews = zomatoAccess.getReview(restaurants[0].getId(),0);
+            String reviews = zomatoAccess.getReview(restaurants[0].getId(), 0);
 
             //GET RESTAURANT LIST
             reviewList = jsonAdapter.getReviews(reviews);
@@ -119,7 +110,7 @@ public class OtherRestaurantResultFragment extends Fragment {
 
     }
 
-    private class GetDailyAsync extends AsyncTask<Restaurant, Void, List<DailyMenu>>{
+    private class GetDailyAsync extends AsyncTask<Restaurant, Void, List<DailyMenu>> {
 
         List<DailyMenu> dailyList = new ArrayList<>();
 
@@ -165,7 +156,7 @@ public class OtherRestaurantResultFragment extends Fragment {
 
     }
 
-    public void setupOnClickListener(){
+    public void setupOnClickListener() {
 
         normalMenu.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -197,9 +188,9 @@ public class OtherRestaurantResultFragment extends Fragment {
         gMapText.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String query = "geo:";
-                query=query+restaurant.getLat()+","+restaurant.getLon()+"?q=";
-                String restaurantBuffer = restaurant.getName().replaceAll(" ","+");
-                query=query+restaurantBuffer;
+                query = query + restaurant.getLat() + "," + restaurant.getLon() + "?q=";
+                String restaurantBuffer = restaurant.getName().replaceAll(" ", "+");
+                query = query + restaurantBuffer;
                 Uri gmmIntentUri = Uri.parse(query);
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
@@ -217,11 +208,11 @@ public class OtherRestaurantResultFragment extends Fragment {
 
     private void getDailyMenu() {
         GetDailyAsync getDailyAsync = new GetDailyAsync();
-        List<DailyMenu> menuList=null;
+        List<DailyMenu> menuList = null;
         try {
             menuList = getDailyAsync.execute(restaurant).get();
 
-            for (int i=0; i<menuList.size(); i++) {
+            for (int i = 0; i < menuList.size(); i++) {
                 DailyMenu menu = menuList.get(i);
                 List<Food> foods = menu.getDishes();
                 View viDaily = inflater.inflate(R.layout.daily_layout, null);
@@ -233,7 +224,7 @@ public class OtherRestaurantResultFragment extends Fragment {
                 dailyEnd.setText(menu.getEnd_date());
                 menuView.addView(viDaily);
 
-                for (int j=0; j<foods.size();i++) {
+                for (int j = 0; j < foods.size(); i++) {
                     View vi = inflater.inflate(R.layout.dishes_layout, null);
                     TextView foodName = vi.findViewById(R.id.menuName);
                     TextView foodPrice = vi.findViewById(R.id.menuPrice);
@@ -243,7 +234,7 @@ public class OtherRestaurantResultFragment extends Fragment {
                 }
             }
 
-            if (menuList.size()==0) {
+            if (menuList.size() == 0) {
                 View vi = inflater.inflate(R.layout.menu_notfound, null);
                 menuView.addView(vi);
             }
@@ -280,7 +271,7 @@ public class OtherRestaurantResultFragment extends Fragment {
         try {
             reviewList = getReviewAsync.execute(restaurant).get();
 
-            for (int i=0; i<reviewList.size(); i++) {
+            for (int i = 0; i < reviewList.size(); i++) {
                 Review review = reviewList.get(i);
                 View vi = inflater.inflate(R.layout.review_layout, null);
                 TextView reviewerName = vi.findViewById(R.id.reviewerName);

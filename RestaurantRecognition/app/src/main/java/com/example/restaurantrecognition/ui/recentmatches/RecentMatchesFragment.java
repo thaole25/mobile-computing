@@ -45,7 +45,8 @@ public class RecentMatchesFragment extends Fragment {
             SharedPreferences sharedPreferences = context.getSharedPreferences(RecentMatchItem.PREFERENCES_STORE_NAME, Context.MODE_PRIVATE);
             String matchListJson = sharedPreferences.getString(RecentMatchItem.PREFERENCES_STORE_NAME, null);
             Gson gson = new Gson();
-            Type type = new TypeToken<List<RecentMatchItem>>(){}.getType();
+            Type type = new TypeToken<List<RecentMatchItem>>() {
+            }.getType();
             List<RecentMatchItem> recentMatchItemList = gson.fromJson(matchListJson, type);
             if (recentMatchItemList != null) {
                 recyclerView.setAdapter(new RecentMatchesRecyclerViewAdapter(recentMatchItemList, mListener));

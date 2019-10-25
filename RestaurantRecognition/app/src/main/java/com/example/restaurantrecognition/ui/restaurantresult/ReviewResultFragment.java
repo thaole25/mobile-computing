@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProviders;
 import com.example.restaurantrecognition.R;
 import com.example.restaurantrecognition.ui.adapter.JSONAdapter;
 import com.example.restaurantrecognition.ui.adapter.Restaurant;
-import com.example.restaurantrecognition.ui.adapter.RestaurantListAdapter;
 import com.example.restaurantrecognition.ui.adapter.Review;
 import com.example.restaurantrecognition.ui.adapter.ReviewListAdapter;
 import com.example.restaurantrecognition.ui.searchresult.SearchResultViewModel;
@@ -45,7 +44,7 @@ public class ReviewResultFragment extends Fragment {
         offset = 0;
 
         Bundle bundle = this.getArguments();
-        restaurant = (Restaurant)bundle.get("Restaurant");
+        restaurant = (Restaurant) bundle.get("Restaurant");
 
         GetReviewAsync getReviewAsync = new GetReviewAsync();
         try {
@@ -57,7 +56,7 @@ public class ReviewResultFragment extends Fragment {
         }
 
         listViewAdapter = new ReviewListAdapter(
-                getActivity(),R.layout.review_layout,reviewList
+                getActivity(), R.layout.review_layout, reviewList
         );
 
         listView.setAdapter(listViewAdapter);
@@ -77,7 +76,7 @@ public class ReviewResultFragment extends Fragment {
             JSONAdapter jsonAdapter = new JSONAdapter();
 
             //GET Reviews
-            String reviews = zomatoAccess.getReview(restaurants[0].getId(),offset);
+            String reviews = zomatoAccess.getReview(restaurants[0].getId(), offset);
 
             //GET RESTAURANT LIST
             reviewList = jsonAdapter.getReviews(reviews);
@@ -98,10 +97,10 @@ public class ReviewResultFragment extends Fragment {
                 if (scrollState == SCROLL_STATE_IDLE) {
                     if (listView.getLastVisiblePosition() >= (count - threshold)) {
                         GetReviewAsync getReviewAsync = new GetReviewAsync();
-                        offset = offset+5;
+                        offset = offset + 5;
                         try {
                             List<Review> newReviews = getReviewAsync.execute(restaurant).get();
-                            for (int i=0 ; i<newReviews.size() ; i++) {
+                            for (int i = 0; i < newReviews.size(); i++) {
                                 reviewList.add(newReviews.get(i));
                             }
                             listViewAdapter.notifyDataSetChanged();

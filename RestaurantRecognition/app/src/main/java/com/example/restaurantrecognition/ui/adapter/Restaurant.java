@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Restaurant implements Serializable {
     String id;
     String image;
-    String name,address;
+    String name, address;
     String rating;
     String menuURL;
     double lat;
@@ -27,7 +27,9 @@ public class Restaurant implements Serializable {
         this.currency = currency;
     }
 
-    public String getId() { return id;}
+    public String getId() {
+        return id;
+    }
 
     public String getImage() {
         return image;
@@ -45,13 +47,23 @@ public class Restaurant implements Serializable {
         return rating;
     }
 
-    public String getMenuURL() { return menuURL;}
+    public String getMenuURL() {
+        return menuURL;
+    }
 
-    public double getLat() { return lat; }
+    public double getLat() {
+        return lat;
+    }
 
-    public double getLon() { return lon; }
+    public double getLon() {
+        return lon;
+    }
 
-    public String getPriceForTwo() { return priceForTwo; }
+    public String getPriceForTwo() {
+        return priceForTwo;
+    }
 
-    public String getCurrency() { return currency; }
+    public String getCurrency() {
+        return currency;
+    }
 }

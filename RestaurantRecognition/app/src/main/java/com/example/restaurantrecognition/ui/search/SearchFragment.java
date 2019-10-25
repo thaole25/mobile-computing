@@ -26,7 +26,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,7 +53,6 @@ import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.firestore.Restaurant;
 import com.example.restaurantrecognition.ui.recentmatches.RecentMatchItem;
 import com.example.restaurantrecognition.ui.restaurantresult.RestaurantResultFragment;
-import com.example.restaurantrecognition.firestore.Prediction;
 import com.example.restaurantrecognition.ml_model.AnalyseImageOnFirebase;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -103,7 +101,6 @@ public class SearchFragment extends Fragment implements LocationListener {
     private final int IMG_CHANNEL = 3;
     private final int IMG_CLASSES = 15;
 
-    //    private TextView txtResult;
     private AnalyseImageOnFirebase aiModel = new AnalyseImageOnFirebase();
     private GPSLocation gpsLocation = new GPSLocation();
 
@@ -127,8 +124,6 @@ public class SearchFragment extends Fragment implements LocationListener {
     TextView txtResult;
 
     private SearchViewModel searchViewModel;
-
-//    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -172,20 +167,17 @@ public class SearchFragment extends Fragment implements LocationListener {
 
     private void startCamera() {
         CameraX.unbindAll();
-        Rational aspectRatio = new Rational(textureView.getWidth(), textureView.getHeight());
-        Size screen = new Size(textureView.getWidth(), textureView.getHeight());
-
-        PreviewConfig pConfig = new PreviewConfig.Builder().setTargetAspectRatio(aspectRatio)
-                .setTargetResolution(screen).build();
-        Preview preview = new Preview(pConfig);
-
+        Size screenSize = new Size(textureView.getWidth(), textureView.getHeight());
+        PreviewConfig previewConfig = new PreviewConfig.Builder().setTargetAspectRatio(new Rational(textureView.getWidth(), textureView.getHeight()))
+                .setTargetResolution(screenSize).build();
+        Preview preview = new Preview(previewConfig);
         preview.setOnPreviewOutputUpdateListener(
                 output -> {
                     ViewGroup parent = (ViewGroup) textureView.getParent();
                     parent.removeView(textureView);
                     parent.addView(textureView, 0);
                     textureView.setSurfaceTexture(output.getSurfaceTexture());
-                    updateTransform();
+                    transform();
                 }
         );
 
@@ -243,40 +235,22 @@ public class SearchFragment extends Fragment implements LocationListener {
             startActivityForResult(intent, REQUEST_CODE_GET_IMAGE);
         });
 
-        //bind to lifecycle:
         CameraX.bindToLifecycle(this, preview, imgCap);
     }
 
-    private void updateTransform() {
-        Matrix mx = new Matrix();
-        float w = textureView.getMeasuredWidth();
-        float h = textureView.getMeasuredHeight();
-
-        float cX = w / 2f;
-        float cY = h / 2f;
-
-        int rotationDgr;
+    private void transform() {
         int rotation = (int) textureView.getRotation();
-
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                rotationDgr = 0;
-                break;
-            case Surface.ROTATION_90:
-                rotationDgr = 90;
-                break;
-            case Surface.ROTATION_180:
-                rotationDgr = 180;
-                break;
-            case Surface.ROTATION_270:
-                rotationDgr = 270;
-                break;
-            default:
-                return;
+        int rotationDegree = 0;
+        if (rotation == Surface.ROTATION_90){
+            rotationDegree = 90;
+        }else if (rotation == Surface.ROTATION_180){
+            rotationDegree = 180;
+        }else if (rotation == Surface.ROTATION_270){
+            rotationDegree = 270;
         }
-
-        mx.postRotate((float) rotationDgr, cX, cY);
-        textureView.setTransform(mx);
+        Matrix matrix = new Matrix();
+        matrix.postRotate((float) rotationDegree, textureView.getMeasuredWidth() / 2f, textureView.getMeasuredHeight() / 2f);
+        textureView.setTransform(matrix);
     }
 
     @Override
@@ -346,8 +320,6 @@ public class SearchFragment extends Fragment implements LocationListener {
         FirebaseModelInterpreterOptions options;
         FirebaseModelInputOutputOptions inputOutputOptions;
 
-//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector.tflite").build();
-//        localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v2.tflite").build();
         localModel = new FirebaseCustomLocalModel.Builder().setAssetFilePath("restaurants-detector-v3-15.tflite").build();
 
         FirebaseModelInterpreter interpreter;

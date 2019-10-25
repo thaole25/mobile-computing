@@ -19,7 +19,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.restaurantrecognition.R;
-import com.google.rpc.Help;
 
 public class HelpFragment extends Fragment {
 
@@ -44,24 +43,24 @@ public class HelpFragment extends Fragment {
         sendMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                Log.d("Error", "Pressing button" );
+                Log.d("Error", "Pressing button");
                 final EditText editTextName = root.findViewById(R.id.editTextName);
                 String name = editTextName.getText().toString();
-                final EditText editTextEmail= root.findViewById(R.id.editTextEmail);
+                final EditText editTextEmail = root.findViewById(R.id.editTextEmail);
                 String email = editTextEmail.getText().toString();
-                final EditText editTextMessage= root.findViewById(R.id.editTextMessage);
+                final EditText editTextMessage = root.findViewById(R.id.editTextMessage);
                 String message = editTextMessage.getText().toString();
-                final EditText editTextPhone= root.findViewById(R.id.editTextPhone);
+                final EditText editTextPhone = root.findViewById(R.id.editTextPhone);
                 String phone = editTextPhone.getText().toString();
 
-                String messageBody=
-                                "Name: "+name+
-                                "<br>Phone: "+phone +
-                                "<br>Email: "+email + "<br>"+
-                                "<br>Message: "+message;
+                String messageBody =
+                        "Name: " + name +
+                                "<br>Phone: " + phone +
+                                "<br>Email: " + email + "<br>" +
+                                "<br>Message: " + message;
                 Intent messageIntent = new Intent(Intent.ACTION_SEND);
                 messageIntent.setType("message/rfc822");
-                messageIntent.putExtra(Intent.EXTRA_EMAIL,new String[]{"gegarciam95@gmail.com"});
+                messageIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"gegarciam95@gmail.com"});
                 messageIntent.putExtra(Intent.EXTRA_SUBJECT, "Help and Feedback: Restaurant Lens");
                 messageIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml(messageBody));
                 try {
